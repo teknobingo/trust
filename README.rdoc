@@ -1,3 +1,26 @@
 = Judge
 
 This project rocks and uses MIT-LICENSE.
+
+== Requirements for making this stuff working
+
+Install the gem
+
+    gem install judge
+        
+=== Setup your controller. 
+When a user has been identified you must set the current user. This can be done like this:
+
+    Judge::Authorization.user = current_user
+        
+To authorize access in your controller, you must have identified the action and the object / class to authorize. If model is nested, then you should also specify parent. You need to find the object or class and this can be done in a before filter. Once you have identified the object instance or class you can call this:
+
+    Judge::Authorization.authorize! action, instance, parent_instance
+    
+We have however made it really easy for you if you would not like to setup the framework yourself
+All you have to do then is to embed this line in your controller after the user has been authenticated:
+
+    judged
+
+
+        
