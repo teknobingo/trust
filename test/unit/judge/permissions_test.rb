@@ -140,7 +140,7 @@ class Judge::PermissionsTest < ActiveSupport::TestCase
 
   context 'inheritance' do
     should 'clone deeply' do
-      class TestBaseAuth < Judge::Base
+      class TestBaseAuth < Judge::Permissions
       end
       TestBaseAuth.role :tester do
         TestBaseAuth.can :hi, :if => :ho
@@ -159,7 +159,7 @@ class Judge::PermissionsTest < ActiveSupport::TestCase
       assert_equal expect, TestInheritedAuth.permissions
     end
     should 'accumulate inherited permissions' do
-      class TestBaseAuth2 < Judge::Base
+      class TestBaseAuth2 < Judge::Permissions
       end
       TestBaseAuth2.role :tester do
         TestBaseAuth2.can :hi, :if => :ho
