@@ -1,6 +1,7 @@
 module Judge
   module Controller
     class Resource
+      delegate :logger, :to => Rails
       attr_reader :properties, :params, :action
       attr_reader :resource_info, :parent_info, :relation
 
@@ -8,10 +9,9 @@ module Judge
         @action = action_name.to_sym
         
         @properties, @params = properties, params
-        @resource_info = InstanceInfo.new(properties.model_name, params)
+        @resource_info = ResourceInfo.new(properties.model_name, params)
         if properties.has_associations?
-          @parent_info = ParentInfo.new(properties.belongs_to, params, request)
-          self.parent = @parent_info.object
+          @parent_info = ParentInfo.new(properties.associations, params, request)
         end
         @relation = @resource_info.relation(@parent_info)        
       end
@@ -34,6 +34,7 @@ module Judge
       end
       
       def load
+        self.parent = parent_info.object if parent_info
         if properties.new_actions.include?(action)
           logger.debug "Setting new: resource_info.params: #{resource_info.params.inspect}"
           self.instance ||= relation.new(resource_info.params)
@@ -94,12 +95,12 @@ module Judge
     end
     
 
-    class Resource::InstanceInfo < Resource::Info
+    class Resource::ResourceInfo < Resource::Info
 
       def initialize(model_name, params)
         @path, params = model_name, params
-        @klass = model_name.classify.constantize
-        @name = model_name.singularize.underscore.gsub('/','_').to_sym
+        @klass = model_name.to_s.classify.constantize
+        @name = model_name.to_s.singularize.underscore.gsub('/','_').to_sym
         ptr = @klass.descendants.detect do |c|
           params.key? var_name(c)
         end || @klass

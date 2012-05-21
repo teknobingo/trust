@@ -1,17 +1,17 @@
 module Judge
   module Controller
     class Properties
-      
+      delegate :logger, :to => Rails
       attr_reader :controller
       attr_accessor :model_name
-      attr_accessor :belongs_to
+      attr_accessor :associations
       attr_accessor :new_actions
       attr_accessor :member_actions
       attr_accessor :collection_actions
       
       def initialize(controller)
         @controller = controller
-        @belongs_to = []
+        @associations = []
         @new_actions = [:new, :create]
         @member_actions = [:show, :edit, :update, :destroy]
         @collection_actions = [:index]
@@ -29,23 +29,24 @@ module Judge
         end
       end
 
-      def model_name
-        @model_name ||= controller.controller_path
+      def model_name(name = nil)
+        @model_name ||= (name && name.to_s) || controller.controller_path
       end
       
       # Specify associated resources
       # Example:
       #   belongs_to :lottery
+      #   belongs_to :table, :card_game
       #
       def belongs_to(*resources)
         raise ArgumentError, "You must specify at least one resource after belongs_to" unless resources
-        options = resources.extract_options!
-        @belongs_to += Array.wrap(resources)
-        logger.debug "#{controller_path} belongs_to #{self.properties.belongs_to}"
+        # options = resources.extract_options!
+        @associations += Array.wrap(resources)
+        logger.debug "#{@model_name || controller.controller_path} belongs_to #{@belongs_to}"
       end
       
       def has_associations?
-        @belongs_to.size > 0
+        @associations.size > 0
       end
       
       # actions(options)
