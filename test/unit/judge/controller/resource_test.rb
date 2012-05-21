@@ -191,6 +191,8 @@ class Judge::Controller::ResourceTest < ActiveSupport::TestCase
       assert @resource.parent_info.is_a? Judge::Controller::Resource::ParentInfo
       
     end
+    should_eventually 'load as expected' do
+    end
   end
   
 end

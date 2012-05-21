@@ -8,7 +8,8 @@ module Judge
     self.action_aliases = {
       read: [:index, :show],
       create: [:create, :new],
-      update: [:update, :edit]
+      update: [:update, :edit],
+      manage: [:index, :show, :create, :new, :update, :edit]
       }
   
     def initialize(user, action, klass, object, parent)
