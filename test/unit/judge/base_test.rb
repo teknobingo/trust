@@ -137,4 +137,42 @@ class Judge::BaseTest < ActiveSupport::TestCase
       end
     end
   end
+
+  context 'inheritance' do
+    should 'clone deeply' do
+      class TestBaseAuth < Judge::Base
+      end
+      TestBaseAuth.role :tester do
+        TestBaseAuth.can :hi, :if => :ho
+        TestBaseAuth.can :wink
+      end
+
+      class TestInheritedAuth < TestBaseAuth
+      end
+      TestInheritedAuth.role :tester do
+        TestInheritedAuth.can :foo, :if => :foobar
+        TestInheritedAuth.can :bar
+      end
+      expect = {:tester => [[:hi, {:if => :ho}],[:wink, {}]]}
+      assert_equal expect, TestBaseAuth.permissions
+      expect = {:tester => [[:hi, {:if => :ho}],[:wink, {}],[:foo, {:if => :foobar}],[:bar, {}]]}
+      assert_equal expect, TestInheritedAuth.permissions
+    end
+    should 'accumulate inherited permissions' do
+      class TestBaseAuth2 < Judge::Base
+      end
+      TestBaseAuth2.role :tester do
+        TestBaseAuth2.can :hi, :if => :ho
+        TestBaseAuth2.can :wink
+      end
+
+      class TestOverride < TestBaseAuth2
+      end
+      TestOverride.role :tester do
+        TestOverride.can :hi, :if => :ha
+      end
+      expect = {:tester => [[:hi, {:if=>:ho}], [:wink, {}], [:hi, {:if=>:ha}]]}
+      assert_equal expect, TestOverride.permissions
+    end
+  end
 end

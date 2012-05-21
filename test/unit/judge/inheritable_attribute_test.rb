@@ -28,4 +28,14 @@ class Judge::InheritableAttributeTest < ActiveSupport::TestCase
       Cat.new.food = 'x'
     end
   end
+  context 'inheritance' do
+    should 'deep copy inheritable attributes' do
+      Cat.new.drinks << ['Corona', { :booze => [ 'Liquor', 'Spirit'] }]
+      class Sylvester < Cat
+        self.drinks.last << 'Wiskey'
+      end
+      assert_equal ['Becks', ['Corona', { :booze => [ 'Liquor', 'Spirit'] }]], Cat.drinks
+      assert_equal ['Becks', ['Corona', { :booze => [ 'Liquor', 'Spirit'] }, 'Wiskey']], Sylvester.drinks
+    end
+  end
 end
