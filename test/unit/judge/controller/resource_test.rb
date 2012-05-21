@@ -22,7 +22,7 @@ class Judge::Controller::ResourceTest < ActiveSupport::TestCase
   
   context 'Resource' do
     setup do
-      @res = Judge::Controller::Resource::Instance.new('name_spaced_resource/my_entities', {:name_spaced_resource_my_entity => 'cool'})
+      @res = Judge::Controller::Resource::InstanceInfo.new('name_spaced_resource/my_entities', {:name_spaced_resource_my_entity => 'cool'})
     end
     
     should 'resolve name' do
@@ -45,7 +45,7 @@ class Judge::Controller::ResourceTest < ActiveSupport::TestCase
   
   context 'Irregular Resource' do
     setup do
-      @res = Judge::Controller::Resource::Instance.new('name_spaced_resource/people', {:name_spaced_resource_person => 'cool' })
+      @res = Judge::Controller::Resource::InstanceInfo.new('name_spaced_resource/people', {:name_spaced_resource_person => 'cool' })
     end
     
     should 'resolve name' do
@@ -67,23 +67,23 @@ class Judge::Controller::ResourceTest < ActiveSupport::TestCase
   
   context 'Inheritable resource' do
     should 'detect params for children' do
-      @res = Judge::Controller::Resource::Instance.new('parents', {:child => 'cool' })
+      @res = Judge::Controller::Resource::InstanceInfo.new('parents', {:child => 'cool' })
       assert_equal 'cool', @res.params
     end
     
     should 'detect params for grandchilds' do
-      @res = Judge::Controller::Resource::Instance.new('parents', {:grand_child => 'cool' })
+      @res = Judge::Controller::Resource::InstanceInfo.new('parents', {:grand_child => 'cool' })
       assert_equal 'cool', @res.params
     end
     should 'detect params for base' do
-      @res = Judge::Controller::Resource::Instance.new('parents', {:parent => 'cool' })
+      @res = Judge::Controller::Resource::InstanceInfo.new('parents', {:parent => 'cool' })
       assert_equal 'cool', @res.params
     end
     should 'resolve class' do
-      @res = Judge::Controller::Resource::Instance.new('parents', {:grand_child => 'cool' })
+      @res = Judge::Controller::Resource::InstanceInfo.new('parents', {:grand_child => 'cool' })
       assert_equal Parent, @res.klass
       assert_equal GrandChild, @res.real_class
-      @res = Judge::Controller::Resource::Instance.new('parents', {:parent => 'cool' })
+      @res = Judge::Controller::Resource::InstanceInfo.new('parents', {:parent => 'cool' })
       assert_equal Parent, @res.klass
       assert_equal Parent, @res.real_class
     end
@@ -98,20 +98,20 @@ class Judge::Controller::ResourceTest < ActiveSupport::TestCase
       should 'return object for namespaced resource' do
         @request.stubs(:symbolized_path_parameters).returns({:name_spaced_resource_person_id => 2 })
         NameSpacedResource::Person.expects(:find).with(2).returns(@object = NameSpacedResource::Person.new)
-        @res = Judge::Controller::Resource::Parent.new(@resources, {}, @request)
+        @res = Judge::Controller::Resource::ParentInfo.new(@resources, {}, @request)
         assert_equal @object, @res.object
       end
       should 'return object for regular resource' do
         @request.stubs(:symbolized_path_parameters).returns({:child_id => 2 })
         Child.expects(:find).with(2).returns(@object = Child.new)
-        @res = Judge::Controller::Resource::Parent.new(@resources, {}, @request)
+        @res = Judge::Controller::Resource::ParentInfo.new(@resources, {}, @request)
         assert_equal @object, @res.object
       end
       context 'the attributes' do
         setup do
           @request.stubs(:symbolized_path_parameters).returns({:child_id => 2 })
           Child.expects(:find).with(2).returns(@object = Child.new)
-          @res = Judge::Controller::Resource::Parent.new(@resources, {:child => 'tie'}, @request)
+          @res = Judge::Controller::Resource::ParentInfo.new(@resources, {:child => 'tie'}, @request)
         end
         should 'return class for object' do
           assert_equal @object, @res.object
@@ -131,19 +131,19 @@ class Judge::Controller::ResourceTest < ActiveSupport::TestCase
     should 'return nil for object if not found' do
       @request.stubs(:symbolized_path_parameters).returns({:child_id => 2 })
       Child.expects(:find).with(2).returns(nil)
-      @res = Judge::Controller::Resource::Parent.new(@resources, {}, @request)
+      @res = Judge::Controller::Resource::ParentInfo.new(@resources, {}, @request)
       assert_nil @res.object
       assert !@res.object?
     end
     should 'return nil for object if not specified' do
       @request.stubs(:symbolized_path_parameters).returns({})
-      @res = Judge::Controller::Resource::Parent.new(@resources, {}, @request)
+      @res = Judge::Controller::Resource::ParentInfo.new(@resources, {}, @request)
       assert_nil @res.object
       assert !@res.object?
     end
     should 'return nil for klass when not found' do
       @request.stubs(:symbolized_path_parameters).returns({})
-      @res = Judge::Controller::Resource::Parent.new(@resources, {}, @request)
+      @res = Judge::Controller::Resource::ParentInfo.new(@resources, {}, @request)
       assert_nil @res.klass
     end
   end
@@ -154,7 +154,7 @@ class Judge::Controller::ResourceTest < ActiveSupport::TestCase
       @resources = [:parent]
       @request.stubs(:symbolized_path_parameters).returns({:child_id => 2 })
       Parent.expects(:find).with(2).returns(@object = Child.new)
-      @res = Judge::Controller::Resource::Parent.new(@resources, {}, @request)
+      @res = Judge::Controller::Resource::ParentInfo.new(@resources, {}, @request)
     end
     should 'resolve descendants' do
       assert_equal @object, @res.object

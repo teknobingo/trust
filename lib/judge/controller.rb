@@ -14,14 +14,15 @@ module Judge
       
       def judged(options = {})
         module_eval do
+          include JudgeInstanceMethods
           before_filter :set_user, options
-          before_filter :resolve_resources, options
+          before_filter :load_resource, options
           before_filter :access_control, options
         end
       end
     end
     
-    module InstanceMethods
+    module JudgeInstanceMethods
       def set_user
         Judge::Authorization.user = current_user
       end
@@ -30,16 +31,12 @@ module Judge
         @resource ||= Judge::Resource.new(self, self.class.properties, action_name, params, request)
       end
       
-      def resource_instance=(instance)
-        instance_variable_set("@#{instance_name}", instance)
+      def load_resource
+        resource.load
       end
       
-      def resource_instance
-        instance_variable_get("@#{instance_name}")
-      end
-      
-      def resolve_resources
-        resource # all we need to do is to ensure resource is instantiated
+      def access_control
+        Judge::Authorization.authorize!(action_name, resource.instance, resource.parent)
       end
     end
   end

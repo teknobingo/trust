@@ -1,8 +1,8 @@
 require 'test_helper'
 
-class Judge::BaseTest < ActiveSupport::TestCase
+class Judge::PermissionsTest < ActiveSupport::TestCase
   setup do
-    @base = Judge::Base
+    @base = Judge::Permissions
   end
   context 'class_attributes' do
     should 'have default values' do
@@ -17,7 +17,7 @@ class Judge::BaseTest < ActiveSupport::TestCase
 
   context 'class method' do
     setup do
-      class TestAuth < Judge::Base
+      class TestAuth < Judge::Permissions
       end
     end
     context 'can' do

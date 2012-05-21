@@ -1,30 +1,48 @@
 module Judge
   module Controller
     class Resource
-      attr_reader :klass, :params, :name, :path, :real_class
+      attr_reader :properties, :params, :action
+      attr_reader :resource_info, :parent_info, :relation
 
       def initialize(controller, properties, action_name, params, request)
-        action = action_name.to_sym
+        @action = action_name.to_sym
         
-        #logger.debug "Resolve object: Resource class: #{resource.klass}, action: #{action_name}" +  (associated_object && ", belongs_to: #{associated.klass}" || '')
-        if properties.new_actions.include?(action)
-          logger.debug "Setting new: resource.params: #{resource.params.inspect}"
-          set_instance relation.new(resource.params)
-          build action
-        elsif !collection_actions.include?(action)
-          logger.debug "Finding object: associated_object: #{associated_object.inspect}, relation: #{relation.inspect}"
-          set_instance resource_instance  || resource.klass.find(params[:id])
-          build action
-        end # other outcome would be index
+        @properties, @params = properties, params
+        @resource_info = InstanceInfo.new(properties.model_name, params)
+        if properties.has_associations?
+          @parent_info = ParentInfo.new(properties.belongs_to, params, request)
+          self.parent = @parent_info.object
+        end
+        @relation = @resource_info.relation(@parent_info)        
       end
       
-      def params
-        @data
+      # Controller accessors
+      def instance=(instance)
+        @controller.instance_variable_set("@#{instance_name}", instance)
+      end
+      
+      def instance
+        @controller.instance_variable_get("@#{instance_name}")
+      end
+      
+      def parent=(instance)
+        @controller.instance_variable_set("@#{parent_name}", instance)        
       end
 
-    protected
-      def var_name(klass)
-        klass.to_s.underscore.gsub('/','_').to_sym
+      def parent
+        @controller.instance_variable_get("@#{parent_name}")
+      end
+      
+      def load
+        if properties.new_actions.include?(action)
+          logger.debug "Setting new: resource_info.params: #{resource_info.params.inspect}"
+          self.instance ||= relation.new(resource_info.params)
+          @controller.send(:build, action) if @controller.respond_to(:build)
+        elsif properties.member_actions.include?(action)
+          logger.debug "Finding parent: #{parent.inspect}, relation: #{relation.inspect}"
+          self.instance ||= relation.find(params[:id])
+          @controller.send(:build, action) if @controller.respond_to(:build)
+        end # other outcome would be collection actions
       end
     end
 
@@ -61,8 +79,22 @@ module Judge
     #   resource.path => 'archive'                   # this is the controller_path
     #   resource.real_class => SecretArchive         # Returns the real class which is accessed at the moment
     #
+    
+    class Resource::Info
+      attr_reader :klass, :params, :name, :path, :real_class
+      
+      def params
+        @data
+      end
+   
+    protected
+      def var_name(klass)
+        klass.to_s.underscore.tr('/','_').to_sym
+      end
+    end
+    
 
-    class Resource::Instance < Resource
+    class Resource::InstanceInfo < Resource::Info
 
       def initialize(model_name, params)
         @path, params = model_name, params
@@ -98,7 +130,7 @@ module Judge
       end
     end
 
-    class Resource::Parent < Resource
+    class Resource::ParentInfo < Resource::Info
       attr_reader :object
       def initialize(resources, params, request)
         ptr = resources.detect do |r|

@@ -1,5 +1,5 @@
 module Judge
-  class Base
+  class Permissions
     include InheritableAttribute
     attr_reader :user, :action, :klass, :object, :parent
     inheritable_attr :permissions
@@ -10,11 +10,11 @@ module Judge
       create: [:create, :new],
       update: [:update, :edit]
       }
-
+  
     def initialize(user, action, klass, object, parent)
       @user, @action, @klass, @object, @parent = user, action, klass, object, parent
     end
-    
+  
   protected
     def authorized?
       authorized = nil
@@ -28,7 +28,7 @@ module Judge
       end
       authorized
     end
-    
+  
     def eval_expr(options)
       options.collect do |oper, expr|
         res = case expr
@@ -45,7 +45,7 @@ module Judge
         end
       end.all?
     end
-
+  
     class << self
       def role(roles, &block)
         raise ArgumentError unless block_given?
@@ -59,7 +59,7 @@ module Judge
         end
       end
       alias :roles :role
-      
+  
       # Defines permission
       #   action - can be an alias or an action of some kind
       #   options - :if/:unless :symbol or proc that will be called to evaluate an expression
@@ -67,7 +67,7 @@ module Judge
         raise NoBlockError unless @in_role_block
         @perms += expand_aliases(actions).collect { |action| [action, options] }
       end
-   
+  
     private
       def expand_aliases(actions)
         expanded = []

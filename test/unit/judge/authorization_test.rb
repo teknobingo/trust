@@ -23,17 +23,17 @@ class Judge::AuthorizationTest < ActiveSupport::TestCase
       end
     end
     should 'return associated Authorization class if it exists' do
-      class ::Authorization::TestBase < Judge::Base
+      class ::Permissions::TestBase < Judge::Permissions
       end
-      assert_equal ::Authorization::TestBase, authorizing_class(::TestBase)
+      assert_equal ::Permissions::TestBase, authorizing_class(::TestBase)
     end
     should 'return Authorization::Default if no assocated Authorization class' do
-      assert_equal ::Authorization::Default, authorizing_class(::TestDescendant)
+      assert_equal ::Permissions::Default, authorizing_class(::TestDescendant)
     end
     should 'return parent Authorization if specified and none exist for the class' do
-      class ::Authorization::TestBase < Judge::Base
+      class ::Permissions::TestBase < Judge::Permissions
       end
-      assert_equal ::Authorization::TestBase, authorizing_class(::TestDescendant)
+      assert_equal ::Permissions::TestBase, authorizing_class(::TestDescendant)
     end
   end
   

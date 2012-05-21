@@ -1,5 +1,5 @@
-module Authorization
-  class Default < Judge::Base
+module Permissions
+  class Default < Judge::Permissions
     role :system_admin do
       can :manage
       can :audit

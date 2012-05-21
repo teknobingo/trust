@@ -1,11 +1,11 @@
 require 'judge/exceptions'
 require 'judge/inheritable_attribute'
 module Judge
+  autoload :Permissions,        'judge/permissions'
   autoload :Controller,         'judge/controller'
   autoload :Authorization,      'judge/authorization'
-  autoload :Base,               'judge/base'
 end
-require 'judge/action_controller'
+require 'judge/controller'
 class ActionController::Base
-  include Judge::ActionController
+  include Judge::Controller
 end

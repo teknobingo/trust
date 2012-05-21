@@ -44,6 +44,10 @@ module Judge
         logger.debug "#{controller_path} belongs_to #{self.properties.belongs_to}"
       end
       
+      def has_associations?
+        @belongs_to.size > 0
+      end
+      
       # actions(options)
       # Options
       #  :new => actions        # specify new actions - default id :new, :create

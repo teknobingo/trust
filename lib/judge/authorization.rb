@@ -34,12 +34,12 @@ module Judge
         klass.ancestors.each do |k|
           break if k == ActiveRecord::Base
           begin
-            auth = "Authorization::#{k}".constantize
+            auth = "Permissions::#{k}".constantize
             break
           rescue
           end
         end
-        auth || ::Authorization::Default
+        auth || ::Permissions::Default
       end
     end
   end
