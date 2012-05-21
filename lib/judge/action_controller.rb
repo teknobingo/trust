@@ -1,8 +1,5 @@
 module Judge
-  module ActionController
-    autoload :Resource,           'judge/action_controller/resource'
-    autoload :AssociatedResource, 'judge/action_controller/resource'
-    
+  module ActionController    
     extend ActiveSupport::Concern
     
     module ClassMethods

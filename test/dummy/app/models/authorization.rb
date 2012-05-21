@@ -17,7 +17,7 @@ module Authorization
     end
     
     def owner?
-      object.operator_id == user.id
+      subject.operator_id == user.id
     end
     
     def open?

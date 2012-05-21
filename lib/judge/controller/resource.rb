@@ -1,10 +1,32 @@
 module Judge
-  module ActionController
+  module Controller
+    class Resource
+      attr_reader :klass, :params, :name, :path, :real_class
 
-    # class Resource
-    #   attr_reader :klass, :params, :name, :path, :real_class
-    #   
-    # end
+      def initialize(controller, properties, action_name, params, request)
+        action = action_name.to_sym
+        
+        #logger.debug "Resolve object: Resource class: #{resource.klass}, action: #{action_name}" +  (associated_object && ", belongs_to: #{associated.klass}" || '')
+        if properties.new_actions.include?(action)
+          logger.debug "Setting new: resource.params: #{resource.params.inspect}"
+          set_instance relation.new(resource.params)
+          build action
+        elsif !collection_actions.include?(action)
+          logger.debug "Finding object: associated_object: #{associated_object.inspect}, relation: #{relation.inspect}"
+          set_instance resource_instance  || resource.klass.find(params[:id])
+          build action
+        end # other outcome would be index
+      end
+      
+      def params
+        @data
+      end
+
+    protected
+      def var_name(klass)
+        klass.to_s.underscore.gsub('/','_').to_sym
+      end
+    end
 
     # Resorce resolves information about the resource accessed in action controller
     # This is automatically included in ActionController as long as the method resource is accessed
@@ -40,9 +62,8 @@ module Judge
     #   resource.real_class => SecretArchive         # Returns the real class which is accessed at the moment
     #
 
-    class Resource
-      attr_reader :klass, :params, :name, :path, :real_class
-      
+    class Resource::Instance < Resource
+
       def initialize(model_name, params)
         @path, params = model_name, params
         @klass = model_name.classify.constantize
@@ -53,13 +74,9 @@ module Judge
         @real_class = ptr
         @data = params[var_name(ptr)]
       end
-                        
+
       def plural_name
         @plural_name ||= path.underscore.tr('/','_').to_sym
-      end
-      
-      def params
-        @data
       end
 
       # returns an accessor for association. Tries with full name association first, and if that does not match, tries the demodularized association.
@@ -79,15 +96,9 @@ module Judge
           klass
         end
       end
-
-    private
-      
-      def var_name(klass)
-        klass.to_s.underscore.gsub('/','_').to_sym
-      end
     end
-    
-    class AssociatedResource < Resource
+
+    class Resource::Parent < Resource
       attr_reader :object
       def initialize(resources, params, request)
         ptr = resources.detect do |r|
@@ -112,7 +123,7 @@ module Judge
         end
         @data = params[var_name(ptr)]
       end
-      
+
       def object?
         !!@object
       end
@@ -131,5 +142,4 @@ module Judge
       end
     end
   end
-    
 end
