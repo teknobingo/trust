@@ -19,5 +19,13 @@ class Judge::ControllerTest < ActiveSupport::TestCase
     end
     should_eventually 'provide access control' do
     end
+    context 'can?' do
+      should_eventually 'call authorized?' do
+      end
+      should_eventually 'should have default parameters' do
+      end
+      should_eventually 'be exposed as helper' do
+      end
+    end
   end
 end
