@@ -8,12 +8,12 @@ module Judge
       def initialize(controller, properties, action_name, params, request)
         @action = action_name.to_sym
         
-        @properties, @params = properties, params
-        @resource_info = ResourceInfo.new(properties.model_name, params)
+        @controller, @properties, @params = controller, properties, params
+        @resource_info = extract_resource_info(properties.model_name, params)
         if properties.has_associations?
-          @parent_info = ParentInfo.new(properties.associations, params, request)
+          @parent_info = extract_parent_info(properties.associations, params, request)
         end
-        @relation = @resource_info.relation(@parent_info)        
+        @relation = @resource_info.relation(@parent_info)
       end
       
       # Controller accessors
@@ -38,12 +38,29 @@ module Judge
         if properties.new_actions.include?(action)
           logger.debug "Setting new: resource_info.params: #{resource_info.params.inspect}"
           self.instance ||= relation.new(resource_info.params)
-          @controller.send(:build, action) if @controller.respond_to(:build)
+          @controller.send(:build, action) if @controller.respond_to?(:build)
         elsif properties.member_actions.include?(action)
           logger.debug "Finding parent: #{parent.inspect}, relation: #{relation.inspect}"
           self.instance ||= relation.find(params[:id])
-          @controller.send(:build, action) if @controller.respond_to(:build)
+          @controller.send(:build, action) if @controller.respond_to?(:build)
         end # other outcome would be collection actions
+      end
+      
+    private
+      def extract_resource_info(model_name, params)
+        ResourceInfo.new(model_name, params)
+      end
+      
+      def extract_parent_info(associations, params, request)
+        ParentInfo.new(associations, params, request)
+      end
+      
+      def instance_name
+        resource_info.name
+      end
+      
+      def parent_name
+        parent_info && parent_info.name
       end
     end
 

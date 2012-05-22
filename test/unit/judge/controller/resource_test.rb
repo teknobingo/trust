@@ -177,21 +177,36 @@ class Judge::Controller::ResourceTest < ActiveSupport::TestCase
   
   context 'Resource' do
     setup do
-      @request = stub(:symbolized_path_parameters => {:child_id => 2 })
+      #@request = stub(:symbolized_path_parameters => {:child_id => 2 })
       @controller = stub('Controller')
       @properties = Judge::Controller::Properties.new(@controller)
       @properties.model_name :child
       @properties.belongs_to :parent
-      Parent.expects(:find).returns(Parent.new)
-      Parent.expects(:reflect_on_association).with(:children).returns(Child)
-      @resource = Judge::Controller::Resource.new(@controller, @properties, 'new',{}, @request)
+      #@properties.expects(:has_associations?).returns(true)
+      @resource_info = stub('ResourceInfo')
+      @parent_info = stub(:object => 6, :name => :parent)
+      @resource_info.expects(:relation).with(@parent_info).returns(Child)
+      @resource_info.stubs(:name).returns(:child)
+      Judge::Controller::Resource.any_instance.expects(:extract_resource_info).with('child', {}).returns(@resource_info)
+      Judge::Controller::Resource.any_instance.expects(:extract_parent_info).with([:parent], {}, @request).returns(@parent_info)
     end
     should 'instantiate properly' do      
-      assert @resource.resource_info.is_a? Judge::Controller::Resource::ResourceInfo
-      assert @resource.parent_info.is_a? Judge::Controller::Resource::ParentInfo
-      
+      @resource = Judge::Controller::Resource.new(@controller, @properties, 'new',{}, @request)      
     end
-    should_eventually 'load as expected' do
+    should 'discover variable names' do
+      @resource = Judge::Controller::Resource.new(@controller, @properties, 'new',{}, @request)
+      assert_equal :child, @resource.send(:instance_name)
+      assert_equal :parent, @resource.send(:parent_name)
+    end
+    should 'load as expected' do
+      @resource = Judge::Controller::Resource.new(@controller, @properties, 'new',{}, @request)      
+      @resource_info.stubs(:params).returns({})
+      @controller.expects(:respond_to?).with(:build).returns(false)
+      @resource.load
+      assert_equal 6, @controller.instance_variable_get(:@parent)
+      assert_equal 6, @resource.parent
+      assert @controller.instance_variable_get(:@child).is_a?(Child)
+      assert @resource.instance.is_a?(Child)
     end
   end
   
