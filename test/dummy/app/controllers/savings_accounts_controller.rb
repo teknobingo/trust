@@ -1,0 +1,4 @@
+
+class SavingsAccountsController < AccountsController
+end
+

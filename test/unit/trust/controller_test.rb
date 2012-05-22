@@ -6,6 +6,8 @@ class Trust::ControllerTest < ActiveSupport::TestCase
     class Controller < ActionController::Base
       trusted
     end
+    class DerivedController < Controller
+    end
   end
   context 'class method' do
     should 'instantiate properties' do
@@ -67,6 +69,24 @@ class Trust::ControllerTest < ActiveSupport::TestCase
       end
       should_eventually 'be exposed as helper' do
       end
+    end
+  end
+  context 'derived controller' do
+    should 'instantiate its properties' do
+      DerivedController.instance_variable_set('@properties',nil)
+      Trust::Controller::Properties.expects(:instantiate).with(DerivedController)
+      DerivedController.properties
+    end
+    should 'instantiate its own properties' do
+      assert_not_equal Controller.properties, DerivedController.properties
+    end
+    should 'delegate to its own resource' do
+      DerivedController.properties.expects(:belongs_to)
+      DerivedController.properties.expects(:actions)
+      DerivedController.properties.expects(:model_name)
+      DerivedController.belongs_to
+      DerivedController.actions
+      DerivedController.model_name
     end
   end
 end

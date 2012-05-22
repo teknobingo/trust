@@ -1,9 +1,14 @@
 
 class AccountsController < ApplicationController
+
+  def model
+    self.class.name[0..-"Controller".size-1].classify.constantize
+  end
+
   # GET /accounts
   # GET /accounts.json
   def index
-    @accounts = Account.all
+    @accounts = model.all
 
     respond_to do |format|
       format.html # index.html.erb
@@ -14,7 +19,7 @@ class AccountsController < ApplicationController
   # GET /accounts/1
   # GET /accounts/1.json
   def show
-    @account = Account.find(params[:id])
+    @account = model.find(params[:id])
 
     respond_to do |format|
       format.html # show.html.erb
@@ -25,7 +30,7 @@ class AccountsController < ApplicationController
   # GET /accounts/new
   # GET /accounts/new.json
   def new
-    @account = Account.new
+    @account = model.new
 
     respond_to do |format|
       format.html # new.html.erb
@@ -35,13 +40,13 @@ class AccountsController < ApplicationController
 
   # GET /accounts/1/edit
   def edit
-    @account = Account.find(params[:id])
+    @account = model.find(params[:id])
   end
 
   # POST /accounts
   # POST /accounts.json
   def create
-    @account = Account.new(params[:account])
+    @account = model.new(params[:account])
 
     respond_to do |format|
       if @account.save
@@ -57,7 +62,7 @@ class AccountsController < ApplicationController
   # PUT /accounts/1
   # PUT /accounts/1.json
   def update
-    @account = Account.find(params[:id])
+    @account = model.find(params[:id])
 
     respond_to do |format|
       if @account.update_attributes(params[:account])
@@ -73,7 +78,7 @@ class AccountsController < ApplicationController
   # DELETE /accounts/1
   # DELETE /accounts/1.json
   def destroy
-    @account = Account.find(params[:id])
+    @account = model.find(params[:id])
     @account.destroy
 
     respond_to do |format|
