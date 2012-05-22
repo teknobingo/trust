@@ -1,0 +1,3 @@
+
+class SavingsAccount < Account
+end
