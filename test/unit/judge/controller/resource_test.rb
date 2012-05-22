@@ -177,12 +177,10 @@ class Judge::Controller::ResourceTest < ActiveSupport::TestCase
   
   context 'Resource' do
     setup do
-      #@request = stub(:symbolized_path_parameters => {:child_id => 2 })
       @controller = stub('Controller')
       @properties = Judge::Controller::Properties.new(@controller)
       @properties.model_name :child
       @properties.belongs_to :parent
-      #@properties.expects(:has_associations?).returns(true)
       @resource_info = stub('ResourceInfo')
       @parent_info = stub(:object => 6, :name => :parent)
       @resource_info.expects(:relation).with(@parent_info).returns(Child)

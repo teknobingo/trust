@@ -28,7 +28,7 @@ module Judge
       end
       
       def resource
-        @resource ||= Judge::Resource.new(self, self.class.properties, action_name, params, request)
+        @resource ||= Judge::Controller::Resource.new(self, self.class.properties, action_name, params, request)
       end
       
       def load_resource
@@ -36,7 +36,7 @@ module Judge
       end
       
       def access_control
-        Judge::Authorization.authorize!(action_name, resource.instance, resource.parent)
+        Judge::Authorization.authorize!(action_name, resource.instance || resource.klass, resource.parent)
       end
     end
   end

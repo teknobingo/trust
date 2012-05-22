@@ -21,7 +21,7 @@ module Judge
         def instantiate(controller)
           if controller.superclass.respond_to?(:properties) 
             object = controller.superclass.properties.clone
-            object.instace_variable_set(:@controller, controller)
+            object.instance_variable_set(:@controller, controller)
           else
             object = new(controller)
           end

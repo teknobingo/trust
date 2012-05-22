@@ -33,6 +33,10 @@ module Judge
         @controller.instance_variable_get("@#{parent_name}")
       end
       
+      def klass
+        resource_info.klass
+      end
+
       def load
         self.parent = parent_info.object if parent_info
         if properties.new_actions.include?(action)
