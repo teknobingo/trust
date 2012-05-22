@@ -32,7 +32,7 @@ module Judge
       def authorizing_class(klass)
         auth = nil
         klass.ancestors.each do |k|
-          break if k == ActiveRecord::Base
+          break if k == ::ActiveRecord::Base
           begin
             auth = "Permissions::#{k}".constantize
             break

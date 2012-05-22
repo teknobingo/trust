@@ -3,19 +3,13 @@ module Judge
     extend ActiveSupport::Concern
     
     included do
-      include JudgeInctanceMethods
+      include ClassMethods
     end
     
-    module CLassMethods
+    module ClassMethods
       def can?(action, parent = nil)
         Judge::Authorization.authorized?(action, self, parent)
       end
-    end
-    
-    module JudgeInctanceMethods
-      def can?(action, parent = nil)
-        Judge::Authorization.authorized?(action, self, parent)
-      end      
     end
   end
 end
