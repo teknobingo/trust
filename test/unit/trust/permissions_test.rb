@@ -1,8 +1,8 @@
 require 'test_helper'
 
-class Judge::PermissionsTest < ActiveSupport::TestCase
+class Trust::PermissionsTest < ActiveSupport::TestCase
   setup do
-    @base = Judge::Permissions
+    @base = Trust::Permissions
   end
   context 'class_attributes' do
     should 'have default values' do
@@ -17,7 +17,7 @@ class Judge::PermissionsTest < ActiveSupport::TestCase
 
   context 'class method' do
     setup do
-      class TestAuth < Judge::Permissions
+      class TestAuth < Trust::Permissions
       end
     end
     context 'can' do
@@ -46,7 +46,7 @@ class Judge::PermissionsTest < ActiveSupport::TestCase
         assert_equal expected, TestAuth.permissions
       end
       should 'raise exception if not executed within a role block' do
-        assert_raises Judge::NoBlockError do
+        assert_raises Trust::NoBlockError do
           TestAuth.can :bu
         end
       end
@@ -113,7 +113,7 @@ class Judge::PermissionsTest < ActiveSupport::TestCase
         end
       end
       should 'raise exception if condition not supported' do
-        assert_raises Judge::UnsupportedCondition do
+        assert_raises Trust::UnsupportedCondition do
           eval_expr(:unsupported => true)
         end
       end
@@ -140,7 +140,7 @@ class Judge::PermissionsTest < ActiveSupport::TestCase
 
   context 'inheritance' do
     should 'clone deeply' do
-      class TestBaseAuth < Judge::Permissions
+      class TestBaseAuth < Trust::Permissions
       end
       TestBaseAuth.role :tester do
         TestBaseAuth.can :hi, :if => :ho
@@ -159,7 +159,7 @@ class Judge::PermissionsTest < ActiveSupport::TestCase
       assert_equal expect, TestInheritedAuth.permissions
     end
     should 'accumulate inherited permissions' do
-      class TestBaseAuth2 < Judge::Permissions
+      class TestBaseAuth2 < Trust::Permissions
       end
       TestBaseAuth2.role :tester do
         TestBaseAuth2.can :hi, :if => :ho

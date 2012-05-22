@@ -1,5 +1,5 @@
 module Permissions
-  class Default < Judge::Permissions
+  class Default < Trust::Permissions
     role :system_admin do
       can :manage
       can :audit

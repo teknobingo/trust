@@ -1,9 +1,9 @@
 require 'test_helper'
 
-class Judge::InheritableAttributeTest < ActiveSupport::TestCase
+class Trust::InheritableAttributeTest < ActiveSupport::TestCase
   setup do
     class Cat
-      include Judge::InheritableAttribute
+      include Trust::InheritableAttribute
       inheritable_attr :drinks
       inheritable_attr :food, :instance_writer => false, :instance_reader => false
       self.drinks = ["Becks"]

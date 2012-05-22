@@ -1,4 +1,4 @@
-module Judge
+module Trust
   class Permissions
     include InheritableAttribute
     attr_reader :user, :action, :klass, :object, :parent

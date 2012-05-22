@@ -1,17 +1,17 @@
 $:.push File.expand_path("../lib", __FILE__)
 
 # Maintain your gem's version:
-require "judge/version"
+require "trust/version"
 
 # Describe your gem and declare its dependencies:
 Gem::Specification.new do |s|
-  s.name        = "judge"
-  s.version     = Judge::VERSION
+  s.name        = "trust"
+  s.version     = Trust::VERSION
   s.authors     = ["TODO: Your name"]
   s.email       = ["TODO: Your email"]
   s.homepage    = "TODO"
-  s.summary     = "TODO: Summary of Judge."
-  s.description = "TODO: Description of Judge."
+  s.summary     = "TODO: Summary of Trust."
+  s.description = "TODO: Description of Trust."
 
   s.files = Dir["{app,config,db,lib}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.rdoc"]
   s.test_files = Dir["test/**/*"]

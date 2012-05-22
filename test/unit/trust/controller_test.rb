@@ -1,22 +1,22 @@
 require 'test_helper'
 
 
-class Judge::ControllerTest < ActiveSupport::TestCase
+class Trust::ControllerTest < ActiveSupport::TestCase
   setup do
     class Controller < ActionController::Base
-      judged
+      trusted
     end
   end
   context 'class method' do
     should 'instantiate properties' do
-      assert_kind_of Judge::Controller::Properties, Controller.properties
+      assert_kind_of Trust::Controller::Properties, Controller.properties
     end
-    should 'judged set filers' do
+    should 'trusted set filers' do
       options = {:hello => :there}
       Controller.expects(:before_filter).with(:set_user, options)
       Controller.expects(:before_filter).with(:load_resource, options)
       Controller.expects(:before_filter).with(:access_control, options)
-      Controller.judged options
+      Controller.trusted options
     end
     should 'delegate to resource' do
       Controller.properties.expects(:belongs_to)
@@ -34,7 +34,7 @@ class Judge::ControllerTest < ActiveSupport::TestCase
     should 'set user' do
       user = stub('user')
       @controller.expects(:current_user).returns(user)
-      Judge::Authorization.expects(:user=).with(user)
+      Trust::Authorization.expects(:user=).with(user)
       @controller.set_user
     end
     should 'load resource' do
@@ -50,14 +50,14 @@ class Judge::ControllerTest < ActiveSupport::TestCase
       resource.expects(:instance).returns(instance)
       resource.expects(:parent).returns(parent)
       @controller.expects(:resource).returns(resource).twice
-      Judge::Authorization.expects(:authorize!).with(nil,instance,parent)
+      Trust::Authorization.expects(:authorize!).with(nil,instance,parent)
       @controller.access_control
 
       resource.expects(:instance).returns(nil)
       resource.expects(:parent).returns(parent)
       resource.expects(:klass).returns(klass)
       @controller.expects(:resource).returns(resource).times(3)
-      Judge::Authorization.expects(:authorize!).with(nil,klass,parent)
+      Trust::Authorization.expects(:authorize!).with(nil,klass,parent)
       @controller.access_control
     end
     context 'can?' do

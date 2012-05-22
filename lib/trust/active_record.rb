@@ -1,4 +1,4 @@
-module Judge
+module Trust
   module ActiveRecord
     extend ActiveSupport::Concern
     
@@ -8,7 +8,7 @@ module Judge
     
     module ClassMethods
       def can?(action, parent = nil)
-        Judge::Authorization.authorized?(action, self, parent)
+        Trust::Authorization.authorized?(action, self, parent)
       end
     end
   end

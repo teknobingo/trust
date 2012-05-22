@@ -1,4 +1,4 @@
-module Judge
+module Trust
   module Controller
     class Resource
       delegate :logger, :to => Rails

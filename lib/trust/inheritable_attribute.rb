@@ -1,4 +1,4 @@
-module Judge
+module Trust
   module InheritableAttribute
     extend ActiveSupport::Concern
 

@@ -1,4 +1,4 @@
-module Judge
+module Trust
   class Authorization
     class << self
       def authorized?(action, object_or_class, parent)

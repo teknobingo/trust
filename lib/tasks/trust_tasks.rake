@@ -1,4 +1,4 @@
 # desc "Explaining what the task does"
-# task :judge do
+# task :trust do
 #   # Task goes here
 # end

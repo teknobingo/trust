@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    judge (0.0.1)
+    trust (0.0.1)
       rails (~> 3.2.3)
 
 GEM
@@ -97,7 +97,7 @@ PLATFORMS
 
 DEPENDENCIES
   jquery-rails
-  judge!
   mocha
   shoulda
   sqlite3
+  trust!

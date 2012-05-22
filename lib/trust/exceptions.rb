@@ -1,4 +1,4 @@
-module Judge
+module Trust
   class NoBlockError < StandardError; end
   class UnsupportedCondition < StandardError; end
   
