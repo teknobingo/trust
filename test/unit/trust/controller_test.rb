@@ -43,9 +43,9 @@ class Trust::ControllerTest < ActiveSupport::TestCase
     end
     should 'provide access control' do
       resource = stub('resource')
-      instance = stub('resouce instance')
-      klass    = stub('resouce klass')
-      parent = stub('resource parent')
+      instance = stub('resource instance')
+      klass    = stub('resource klass')
+      parent   = stub('resource parent')
 
       resource.expects(:instance).returns(instance)
       resource.expects(:parent).returns(parent)

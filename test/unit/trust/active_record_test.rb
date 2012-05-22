@@ -1,28 +1,18 @@
 require 'test_helper'
 
-      # def can?(action, parent = nil)
-      #   Trust::Authorization.authorized?(action, self, parent)
-      # end
-
 class Trust::ActiveRecordTest < ActiveSupport::TestCase
   context 'can?' do
     setup do
-      class Record < ActiveRecord::Base
-      end
-      @record = Record.new
+      @user = User.new
+      @account = Account.new
     end
     should 'support calls to athorized? on class level' do
-      action = stub('action')
-      parent = stub('parent')
-      Trust::Authorization.expects(:authorized?).with(action,self,parent)
-      Record.can? action,parent
+      Trust::Authorization.expects(:authorized?).with(:manage,User,@account)
+      User.can? :manage, @account
     end
     should 'support calls to athorized? on instance' do
-      action = stub('action')
-      parent = stub('parent')
-      Trust::Authorization.expects(:authorized?).with(action,self,parent)
-      @record.can? action,parent
+      Trust::Authorization.expects(:authorized?).with(:manage,@user,@account)
+      @user.can? :manage, @account
     end
-    
   end
 end
