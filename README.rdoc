@@ -19,7 +19,7 @@ Well, we used DeclarativeAuthorization[http://github.com/stffn/declarative_autho
 
 === What is not supported in Trust
 
-* Loading datasets for the index action. You may use other plugins / gems for doing this, or you may implement youor own mechanism.
+* Loading datasets for the index action. You may use other plugins / gems for doing this, or you may implement your own mechanism.
 
 === Currently not supported, but may be in the future
 
@@ -155,6 +155,12 @@ If you want to override the name with namespacing then
     trusted
   end
 
+You can also access the instances in a generic manner if you like. Use following statements:
+  
+  resource.instance => accesses the instance variable
+  resource.parent   => accesses the parent instance
+  
+You can even assign these if you like. The resource is also exposed as helper, so you can access it in views.
 
 
 
