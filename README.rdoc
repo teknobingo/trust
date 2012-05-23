@@ -9,6 +9,10 @@ Install the gem
     gem install trust
         
 === Setup your controller. 
+
+Trust expects a ```current_user``` method in the controller that returns, well, the current user.
+The current user can be a devise user, a authlogic user, or your very own ```User``` model.
+
 When a user has been identified you must set the current user. This can be done like this:
 
     Trust::Authorization.user = current_user
