@@ -18,6 +18,7 @@ module Trust
           before_filter :set_user, options
           before_filter :load_resource, options
           before_filter :access_control, options
+          helper_method :can?
         end
       end
     end
@@ -37,6 +38,10 @@ module Trust
       
       def access_control
         Trust::Authorization.authorize!(action_name, resource.instance || resource.klass, resource.parent)
+      end
+
+      def can?(action_name, subject = resource.instance || resource.klass, parent = resource.parent)
+        Trust::Authorization.authorize!(action_name, subject, parent)
       end
     end
   end

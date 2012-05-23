@@ -63,11 +63,30 @@ class Trust::ControllerTest < ActiveSupport::TestCase
       @controller.access_control
     end
     context 'can?' do
-      should_eventually 'call authorized?' do
+      should 'call authorized?' do
+        user = User.new
+        account = Account.new
+        resource = stub('Resource')
+        resource.expects(:parent).returns(nil)
+        @controller.expects(:resource).returns(resource)
+        Trust::Authorization.expects(:authorized?).with(:manage,account,nil).returns(true)
+        @controller.can? :manage, account
       end
-      should_eventually 'should have default parameters' do
+      should 'should have default parameters' do
+        resource = stub('Resource')
+        @controller.expects(:resource).returns(resource).at_least_once
+        resource.expects(:instance).returns(:instance)
+        resource.expects(:parent).returns(:parent)
+        Trust::Authorization.expects(:authorize!).with(:manage,:instance,:parent)
+        @controller.can? :manage
+        resource.expects(:instance).returns(nil)
+        resource.expects(:klass).returns(:klass)
+        resource.expects(:parent).returns(:parent)
+        Trust::Authorization.expects(:authorize!).with(:manage,:klass,:parent)
+        @controller.can? :manage
       end
-      should_eventually 'be exposed as helper' do
+      should 'be exposed as helper' do
+        assert @controller.class._helper_methods.include?(:can?)
       end
     end
   end
