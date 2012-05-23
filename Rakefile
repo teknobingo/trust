@@ -20,8 +20,7 @@ RDoc::Task.new(:rdoc) do |rdoc|
   rdoc.rdoc_files.include('lib/**/*.rb')
 end
 
-
-
+Dir.glob('lib/tasks/*.rake').each { |r| import r }
 
 Bundler::GemHelper.install_tasks
 
