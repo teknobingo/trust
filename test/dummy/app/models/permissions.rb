@@ -5,18 +5,32 @@ module Permissions
       can :audit
     end
   end
+
+  class Client < Default
+    role :accountant do
+      can :manage
+    end
+  end
   
-  # class Account < Default
-  #   role :operator do
-  #     can :create, :if => :owner_of_settlement?
-  #   end
-  #   role [:department_manager, :accountant] do
-  #     can :create, :if => lambda { parent }
-  #   end
+  class Account < Default
+    role :accountant do
+      can :create, :if => :associated_with_client?
+    end
+    role [:department_manager, :accountant] do
+      can :create, :if => lambda { parent }
+    end
     
-  #   def owner_of_settlement?
-  #     parent && parent.operator_id == user.id
-  #   end
-  # end
+    def associated_with_client?
+      parent && parent.is_a?(Client) && parent.accountant == user.name
+    end
+  end
+
+  class Account::Credit < Account
+    role :guest do
+      can :create, :if => lambda { user.name == 'wife'}
+    end
+    
+  end
+
 
 end

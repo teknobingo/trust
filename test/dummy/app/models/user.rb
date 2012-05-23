@@ -1,8 +1,7 @@
 class User < ActiveRecord::Base
-  attr_accessible :name
 
   def role_symbols
-    [:system_admin]
+    [ name && name.to_sym]
   end
 
 end
