@@ -112,23 +112,23 @@ For nested resources you can easily define the associations using _belongs\_to_ 
 You can specify as many associations as you like.
 
 
-== The can? method
+== The can? and permits? method
 
-The can? method is accessible from the controller, the views and the models. Here are some coding examples:
+The can? method is accessible from controller and views. Here are some coding examples:
 
-In controller or views
+In controller or views you will use can?
 
-    can? :edit                    # does the current user have permission to edit the current resource? 
-                                  # If there is a nested resource, the parent is automatically associated
-    can? :edit, @customer         # does the current user have permission to edit the given customer? 
-                                  # Parent is also passed on here.
-    can? :edit, @account, @client # is current user allowed to edit the account associated with the client?
+    can? :edit                        # does the current user have permission to edit the current resource? 
+                                      # If there is a nested resource, the parent is automatically associated
+    can? :edit, @customer             # does the current user have permission to edit the given customer? 
+                                      # Parent is also passed on here.
+    can? :edit, @account, @client     # is current user allowed to edit the account associated with the client?
     
-On ActiveRecord objects
+On ActiveRecord objects you will use permits?
 
-    @customer.can? :edit          # does the current user have permission to edit the given customer?
-    Customer.can? :create         # does the current user have permission to create customers?
-    @account.can? :edit, @client  # is current user allowed to edit the account associated with the client?
+    @customer.permits? :edit          # does the current user have permission to edit the given customer?
+    Customer.permits? :create         # does the current user have permission to create customers?
+    @account.permits? :edit, @client  # is current user allowed to edit the account associated with the client?
 
 == Instance variables
 
@@ -161,6 +161,7 @@ You can also access the instances in a generic manner if you like. Use following
   resource.parent   => accesses the parent instance
   
 You can even assign these if you like. The resource is also exposed as helper, so you can access it in views.
+
 
 
 
