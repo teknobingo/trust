@@ -43,6 +43,9 @@ class Trust::ControllerTest < ActiveSupport::TestCase
       @controller.expects(:resource).returns(stub(:load => true))
       @controller.load_resource
     end
+    should 'expose resource as helper' do
+      assert @controller.class._helper_methods.include?(:resource)
+    end
     should 'provide access control' do
       resource = stub('resource')
       instance = stub('resource instance')

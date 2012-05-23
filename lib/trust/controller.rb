@@ -18,7 +18,7 @@ module Trust
           before_filter :set_user, options
           before_filter :load_resource, options
           before_filter :access_control, options
-          helper_method :can?
+          helper_method :can?, :resource
         end
       end
     end
