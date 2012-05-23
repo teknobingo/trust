@@ -12,7 +12,8 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
       assert_equal @base.action_aliases, {
         read: [:index, :show],
         create: [:create, :new],
-        update: [:update, :edit]
+        update: [:update, :edit],
+        manage: [:index, :show, :create, :new, :update, :edit, :destroy]
         }
     end
   end
@@ -75,22 +76,22 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
   
   context 'instance method' do
     setup do
-      @object = @base.new(:user, :wink, :klass, :object, :parent)
+      @subject = @base.new(:user, :wink, :klass, :subject, :parent)
     end
     context 'authorized?' do
       setup do
         def authorized?
-          @object.send(:authorized?)
+          @subject.send(:authorized?)
         end
       end
       should 'by default be false' do
         @user = stub(:role_symbols => [])
-        @object.stubs(:user).returns(@user)
+        @subject.stubs(:user).returns(@user)
         assert !authorized?
       end
       should 'require explicit permission' do
         @user = stub(:role_symbols => [:manager])
-        @object.stubs(:user).returns(@user)
+        @subject.stubs(:user).returns(@user)
         @base.expects(:permissions).returns({:tester => []})
         assert !authorized?
         @base.expects(:permissions).returns({:manager => [[:hi, {}]]})
@@ -100,7 +101,7 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
       end
       should 'handle multiple roles' do
         @user = stub(:role_symbols => [:tester, :manager])
-        @object.stubs(:user).returns(@user)
+        @subject.stubs(:user).returns(@user)
         @base.stubs(:permissions).
           returns({:tester => [[:hi, {}],[:wink, {}]]}).then.
           returns({:manager => [[:hi, {}],[:wink, {}]]})
@@ -111,7 +112,7 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
     context 'eval_expr' do
       setup do
         def eval_expr(options)
-          @object.send(:eval_expr, options)
+          @subject.send(:eval_expr, options)
         end
       end
       should 'raise exception if condition not supported' do
@@ -130,7 +131,7 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
         assert !eval_expr(:unless => true)
       end
       should 'support symbol expression' do
-        @object.expects(:hello).returns(true)
+        @subject.expects(:hello).returns(true)
         assert eval_expr(:if => :hello)
       end
       should 'support proc expression' do
@@ -138,6 +139,33 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
         assert eval_expr(:if => lambda { true })
       end
     end
+  end
+  
+  context 'accessing accessors in Permission instance' do
+    setup do
+      class Account < Trust::Permissions
+        role :tester do
+          can :test_user,  :if => Proc.new { user.name == 'mcgormic' }
+          can :test_action,  :if => lambda { action == :wink }
+          can :test_klass,   :if => lambda { klass == :klass }
+          can :test_subject, :if => lambda { subject == :subject }
+          can :test_parent,  :if => lambda { parent == :parent }
+          can :test_failure, :if => lambda { failure == :failure }
+        end
+      end
+      @user = stub(:name => 'mcgormic', :role_symbols => [:tester])
+    end
+    should 'expose accessors' do
+      %w(user action klass subject parent).each do |attr|
+        @perm = Account.new(@user, :"test_#{attr}", :klass, :subject, :parent)
+        assert @perm.authorized?
+      end
+      assert_raises NameError do
+        @perm = Account.new(@user, :test_failure, :klass, :subject, :parent)
+        assert @perm.authorized?
+      end
+    end
+    
   end
 
   context 'inheritance' do

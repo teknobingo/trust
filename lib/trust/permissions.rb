@@ -1,7 +1,7 @@
 module Trust
   class Permissions
     include InheritableAttribute
-    attr_reader :user, :action, :klass, :object, :parent
+    attr_reader :user, :action, :klass, :subject, :parent
     inheritable_attr :permissions
     class_attribute :action_aliases, :instance_writer => false, :instance_reader => false
     self.permissions = {}
@@ -12,8 +12,8 @@ module Trust
       manage: [:index, :show, :create, :new, :update, :edit, :destroy]
       }
   
-    def initialize(user, action, klass, object, parent)
-      @user, @action, @klass, @object, @parent = user, action, klass, object, parent
+    def initialize(user, action, klass, subject, parent)
+      @user, @action, @klass, @subject, @parent = user, action, klass, subject, parent
     end
   
     def authorized?
@@ -34,7 +34,12 @@ module Trust
       options.collect do |oper, expr|
         res = case expr
         when Symbol then send(expr)
-        when Proc   then expr.call
+        when Proc
+          if expr.lambda?
+            instance_exec &expr
+          else
+            instance_eval &expr
+          end
         else
           expr
         end
