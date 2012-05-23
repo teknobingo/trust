@@ -10,7 +10,9 @@ module Trust
           object = object_or_class
         end
         # Identify which class to instanciate and then check authorization
-        authorizing_class(klass).new(user, action.to_sym, klass, object, parent).authorized?
+        auth = authorizing_class(klass)
+        Rails.logger.debug "authorizing class for #{klass.name} is #{auth.name}"
+        auth.new(user, action.to_sym, klass, object, parent).authorized?
       end
       
       def authorize!(action, object_or_class, parent, message = nil)
@@ -34,7 +36,7 @@ module Trust
         klass.ancestors.each do |k|
           break if k == ::ActiveRecord::Base
           begin
-            auth = "Permissions::#{k}".constantize
+            auth = "::Permissions::#{k}".constantize
             break
           rescue
           end

@@ -2,7 +2,9 @@ require 'test_helper'
 
 class Trust::PermissionsTest < ActiveSupport::TestCase
   setup do
-    @base = Trust::Permissions
+    class Fund < Trust::Permissions
+    end
+    @base = Fund
   end
   context 'class_attributes' do
     should 'have default values' do

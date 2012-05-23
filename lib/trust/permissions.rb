@@ -9,14 +9,13 @@ module Trust
       read: [:index, :show],
       create: [:create, :new],
       update: [:update, :edit],
-      manage: [:index, :show, :create, :new, :update, :edit]
+      manage: [:index, :show, :create, :new, :update, :edit, :destroy]
       }
   
     def initialize(user, action, klass, object, parent)
       @user, @action, @klass, @object, @parent = user, action, klass, object, parent
     end
   
-  protected
     def authorized?
       authorized = nil
       user.role_symbols.each do |role|
@@ -30,6 +29,7 @@ module Trust
       authorized
     end
   
+  protected
     def eval_expr(options)
       options.collect do |oper, expr|
         res = case expr
