@@ -1,5 +1,18 @@
 module Trust
   module InheritableAttribute
+
+    def self.deep_copy value
+      if value.is_a? Hash
+        Hash[*value.map{ |k,v| [self.deep_copy(k),self.deep_copy(v)] }.flatten(1)]
+      elsif value.is_a? Array
+        value.map{ |v| self.deep_copy(v) }
+      elsif value.is_a? Symbol
+        value
+      else
+        value.clone
+      end
+    end
+
     extend ActiveSupport::Concern
 
     module ClassMethods
@@ -29,7 +42,7 @@ module Trust
 
           def #{name}
             return @#{name} unless superclass.respond_to?(:#{name}) and value = superclass.#{name}
-            @#{name} ||= Marshal.load(Marshal.dump(value.clone)) # only do this once.
+            @#{name} ||= ::Trust::InheritableAttribute::deep_copy(value.clone) # only do this once.
           end
         end_src
         instance_eval src, __FILE__, __LINE__

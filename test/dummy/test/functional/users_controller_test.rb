@@ -3,6 +3,7 @@ require 'test_helper'
 class UsersControllerTest < ActionController::TestCase
   setup do
     @user = User.create #users(:one)
+    login_as(:system_admin)
   end
 
   test "should get index" do
