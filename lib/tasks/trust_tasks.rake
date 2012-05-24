@@ -9,4 +9,11 @@ namespace :db do
       system "cd test/dummy; rake db:#{delegate}"
     end
   end
+
+  namespace :test do
+    desc 'preparte test database with schema'
+    task :prepare do
+      system "cd test/dummy; rake db:test:prepare"
+    end
+  end
 end
