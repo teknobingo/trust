@@ -7,7 +7,7 @@ module Trust
     end
     
     module ClassMethods
-      def can?(action, parent = nil)
+      def permits?(action, parent = nil)
         Trust::Authorization.authorized?(action, self, parent)
       end
     end
