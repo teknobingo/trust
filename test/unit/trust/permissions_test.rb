@@ -162,6 +162,7 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
       should 'support proc expression' do
         assert eval_expr(:if => Proc.new { true })
         assert eval_expr(:if => lambda { true })
+        assert eval_expr(:unless => lambda { false })
       end
     end
   end
@@ -171,7 +172,7 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
       class Account < Trust::Permissions
         role :tester do
           can :test_user,  :if => Proc.new { user.name == 'mcgormic' }
-          can :test_action,  :if => lambda { action == :wink }
+          can :test_action,  :if => lambda { action == :test_action }
           can :test_klass,   :if => lambda { klass == :klass }
           can :test_subject, :if => lambda { subject == :subject }
           can :test_parent,  :if => lambda { parent == :parent }
@@ -183,7 +184,7 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
     should 'expose accessors' do
       %w(user action klass subject parent).each do |attr|
         @perm = Account.new(@user, :"test_#{attr}", :klass, :subject, :parent)
-        assert @perm.authorized?
+        assert @perm.authorized?, "test_#{attr} failed"
       end
       assert_raises NameError do
         @perm = Account.new(@user, :test_failure, :klass, :subject, :parent)

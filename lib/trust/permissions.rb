@@ -127,9 +127,10 @@ module Trust
         else
           expr
         end
+
         case oper
-        when :if then expr
-        when :unless then !expr
+        when :if then res
+        when :unless then !res
         else
           raise UnsupportedCondition, expr.inspect
         end
