@@ -1,6 +1,7 @@
 module Trust
   class NoBlockError < StandardError; end
   class UnsupportedCondition < StandardError; end
+  class RoleAssigmnentMissing < StandardError; end
   
   class AccessDenied < StandardError
     attr_reader :action, :subject

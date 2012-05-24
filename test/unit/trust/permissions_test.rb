@@ -19,11 +19,19 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
   end
 
   context 'class method' do
-    setup do
-      class TestAuth < Trust::Permissions
+    context 'can' do
+      should 'work without using block' do
+        assert_equal ({:can => [[:hi, {}]]}), @base.can(:hi)
+        assert_equal ({:can => [[:hi, {}], [:wink, {}]]}), @base.can(:hi, :wink)
+        assert_equal ({:can => [[:hi, {:if => true}], [:wink, {:if => true}]]}), @base.can(:hi, :wink, :if => true)
+        @base.class_variable_set(:@@can_expressions, 0)
       end
     end
-    context 'can' do
+    context 'can with role block' do
+      setup do
+        class TestAuth < Trust::Permissions
+        end
+      end
       should 'set permissions correctly' do
         TestAuth.role :tester do
           TestAuth.can :hi
@@ -48,10 +56,19 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
         end
         assert_equal expected, TestAuth.permissions
       end
-      should 'raise exception if not executed within a role block' do
-        assert_raises Trust::NoBlockError do
-          TestAuth.can :bu
+    end
+    context 'can assigning role wihtout block' do
+      setup do
+        class TestRoleCan < Trust::Permissions
         end
+      end
+      should 'set permissions correctly' do
+        TestRoleCan.role :tester, :manager, TestRoleCan.can(:hi, :wink, :if => true)
+        expected = {:tester => [[:hi, {:if => true}],[:wink, {:if => true}]], :manager => [[:hi, {:if => true}],[:wink, {:if => true}]]}
+        assert_equal expected, TestRoleCan.permissions
+        TestRoleCan.role :support, TestRoleCan.can(:update)
+        expected[:support] = [[:update, {}], [:edit, {}]]
+        assert_equal expected, TestRoleCan.permissions
       end
     end
     context 'expand_aliases' do
@@ -65,11 +82,19 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
         assert_equal [:hi], @base.send(:expand_aliases, :hi)
       end
     end
-    context 'role' do
-      should 'require block' do
-        assert_raises ArgumentError do
-          TestAuth.role
+    should 'raise exception if not assigned to a role' do
+      flunk if TestRoleCan.class_variable_get(:@@can_expressions) != 0
+      TestRoleCan.can :bu
+      assert_equal 1, TestRoleCan.class_variable_get(:@@can_expressions)
+      assert_raises Trust::RoleAssigmnentMissing do
+        TestRoleCan.role :buh do
         end
+      end
+      TestRoleCan.can :bu
+      TestRoleCan.can :bu
+      assert_equal 2, TestRoleCan.class_variable_get(:@@can_expressions)
+      assert_raises Trust::RoleAssigmnentMissing do
+        TestRoleCan.role :buh
       end
     end
   end

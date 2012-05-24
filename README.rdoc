@@ -8,11 +8,11 @@ Well, we used DeclarativeAuthorization[http://github.com/stffn/declarative_autho
 
 === What will you benefit from when using Trust?
 
-* Resource focused authorizations, not role focused
+* Resource focused permissions, not role focused
 * Complete support for inheritance in controllers
 * Complete support for namespaces, both controllers and models
 * Complete support for shortened associations (e.g. if you have models in name spaces that relates to other models in the name space)
-* Fast authorization loading, where no cashing is needed. All authorizations are declared on class level, so once loaded, they stay in memory.
+* Fast permission loading, where no cashing is needed. All permissions are declared on class level, so once loaded, they stay in memory.
 * Support for inheritance in the authorization model
 * Natural code evaluation in the authorizations declaration, i.e. you understand completely what is going on, because the implementation is done the way you implement condifitions in rails for validations and alike.
 * Automatic loading of instances and parents in controller
@@ -34,7 +34,7 @@ Install the gem
 
 === Define authorizations
 
-Create the authorization file in your model directory. Example
+Create the permissions file in your model directory. Example
 
     module Permissions
       class Default < Trust::Permissions
@@ -45,10 +45,11 @@ Create the authorization file in your model directory. Example
       end
   
       class Account < Default
+        role :support, can(:manage)
         role :accountant do
-          can [:edit, :show], :if => :associated_with_client?
+          can :edit, :show, :if => :associated_with_client?
         end
-        role [:department_manager, :accountant] do
+        role :department_manager, :accountant do
           can :create, :if => lambda { parent }
         end
     
@@ -118,17 +119,16 @@ The can? method is accessible from controller and views. Here are some coding ex
 
 In controller or views you will use can?
 
-    can? :edit                        # does the current user have permission to edit the current resource? 
-                                      # If there is a nested resource, the parent is automatically associated
-    can? :edit, @customer             # does the current user have permission to edit the given customer? 
-                                      # Parent is also passed on here.
-    can? :edit, @account, @client     # is current user allowed to edit the account associated with the client?
+    can? :edit                          # does the current user have permission to edit the current resource? 
+                                        # If there is a nested resource, the parent is automatically associated
+    can? :edit, @customer               # does the current user have permission to edit the given customer? 
+                                        # Parent is also passed on here.
+    can? :edit, @account, @client       # is current user allowed to edit the account associated with the client?
     
 On ActiveRecord objects you will use permits?
 
-    @customer.permits? :edit          # does the current user have permission to edit the given customer?
-    Customer.permits? :create         # does the current user have permission to create customers?
-    @account.permits? :edit, @client  # is current user allowed to edit the account associated with the client?
+    @customer.permits? :edit            # does the current user have permission to edit the given customer?
+    Customer.permits? :create, @client  # does the current user have permission to create customers?
 
 == Instance variables
 
@@ -174,7 +174,7 @@ If you prefer to use some other user reference than current_user you can overrid
     end
 
 You may choose not to use all the before\_filers setup by Trust, and rather use your own implementation. This is entirely up to you.
-You may want to have a look at Trust::Controller to see what it is using to make your own customizations.
+You may want to have a look at Trust::Controller to see what it is doing to make your own customizations.
 
 
 
