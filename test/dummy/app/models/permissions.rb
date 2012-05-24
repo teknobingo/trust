@@ -16,12 +16,12 @@ module Permissions
     role :accountant do
       can :create, :if => :associated_with_client?
     end
-    role [:department_manager, :accountant] do
-      can :create, :if => lambda { parent }
+    role :department_manager, :accountant do
+      can :create, :if => lambda { parent && parent.accountant == :superspecial }
     end
     
     def associated_with_client?
-      parent && parent.is_a?(Client) && parent.accountant == user.name
+      parent && parent.is_a?(::Client) && parent.accountant == user.name
     end
   end
 
