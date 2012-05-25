@@ -3,9 +3,9 @@ require 'test_helper'
 class AccountsControllerTest < ActionController::TestCase
   context 'with all permissions' do
     setup do
+      login_as(:system_admin)
       @client = Client.create
       @account = Account.create(:client_id => @client.id) #accounts(:one)
-      login_as(:system_admin)
     end
 
     should "get index" do
@@ -53,19 +53,44 @@ class AccountsControllerTest < ActionController::TestCase
   
   context 'with limited permissions' do
     setup do
-      @account = Account.create #accounts(:one)
       login_as(:accountant)
+      @client = Client.create
+      @account = @client.accounts.create
+      flunk unless @account
     end
     
-    should_eventually 'deny access on ...actions....' do
-      
+    should 'deny access on index' do
+      assert_raises Trust::AccessDenied do
+        get :index, client_id: @client
+      end
+    end
+    should 'deny access on new' do
+      assert_raises Trust::AccessDenied do
+        get :new, client_id: @client
+      end
+    end
+    should 'deny access on show' do
+      assert_raises Trust::AccessDenied do
+        get :show, client_id: @client, id: @account
+      end
+    end
+    should 'deny access on destroy' do
+      assert_raises Trust::AccessDenied do
+        delete :destroy, client_id: @client, id: @account
+      end
     end
     context 'but having ownership' do
-      should_eventually 'allow updates' do
+      should 'allow updates' do
+        put :update, client_id: @client, id: @account, account: { name: @account.name }
+        assert_redirected_to client_account_path(assigns(:account))
       end
     end
     context 'having no ownership' do
-      should_eventually 'deny access' do
+      should 'deny access' do
+        login_as(:guest)
+        assert_raises Trust::AccessDenied do
+          put :update, client_id: @client, id: @account, account: { name: @account.name }
+        end
       end
     end
     

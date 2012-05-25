@@ -4,6 +4,7 @@ class CreateAccounts < ActiveRecord::Migration
       t.string :name
       t.string :type
       t.references :client
+      t.references :created_by
 
       t.timestamps
     end
