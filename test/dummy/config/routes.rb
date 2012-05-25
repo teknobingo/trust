@@ -2,8 +2,6 @@ Dummy::Application.routes.draw do
   resources :clients
 
   resources :users
-
-  resources :accounts
     
   resources :client do
     resources :savings_accounts, :shallow => true

@@ -4,17 +4,25 @@ module Permissions
       can :manage
       can :audit
     end
+    
+    def self.all
+      [:system_admin, :accountant, :department_manager, :guest]
+    end
+    
+    def creator?
+      subject.created_by == user
+    end
   end
 
   class Client < Default
-    role :accountant do
-      can :manage
-    end
+    role :accountant, can(:manage)
+    role all, can(:read)
   end
   
   class Account < Default
     role :accountant do
       can :create, :if => :associated_with_client?
+      can :update, :if => :creator?
     end
     role :department_manager, :accountant do
       can :create, :if => lambda { parent && parent.accountant == :superspecial }
