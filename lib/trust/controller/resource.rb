@@ -3,17 +3,17 @@ module Trust
     class Resource
       delegate :logger, :to => Rails
       attr_reader :properties, :params, :action
-      attr_reader :resource_info, :parent_info, :relation
+      attr_reader :info, :parent_info, :relation
 
       def initialize(controller, properties, action_name, params, request)
         @action = action_name.to_sym
         
         @controller, @properties, @params = controller, properties, params
-        @resource_info = extract_resource_info(properties.model_name, params)
+        @info = extract_resource_info(properties.model_name, params)
         if properties.has_associations?
           @parent_info = extract_parent_info(properties.associations, params, request)
         end
-        @relation = @resource_info.relation(@parent_info)
+        @relation = @info.relation(@parent_info)
       end
       
       # Controller accessors
@@ -23,6 +23,10 @@ module Trust
       
       def instance
         @controller.instance_variable_get(:"@#{instance_name}")
+      end
+      
+      def instance_params
+        info.params
       end
       
       def parent=(instance)
@@ -46,14 +50,14 @@ module Trust
       end
 
       def klass
-        resource_info.klass
+        info.klass
       end
 
       def load
         self.parent = parent_info.object if parent_info
         if properties.new_actions.include?(action)
-          logger.debug "Setting new: resource_info.params: #{resource_info.params.inspect}"
-          self.instance ||= relation.new(resource_info.params)
+          logger.debug "Setting new: info.params: #{info.params.inspect}"
+          self.instance ||= relation.new(info.params)
           @controller.send(:build, action) if @controller.respond_to?(:build)
         elsif properties.member_actions.include?(action)
           logger.debug "Finding parent: #{parent.inspect}, relation: #{relation.inspect}"
@@ -72,11 +76,11 @@ module Trust
       end
       
       def instance_name
-        resource_info.name
+        info.name
       end
       
       def plural_instance_name
-        resource_info.plural_name
+        info.plural_name
       end
       
       def parent_name
