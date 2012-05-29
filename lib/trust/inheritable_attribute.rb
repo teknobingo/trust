@@ -42,7 +42,7 @@ module Trust
 
           def #{name}
             return @#{name} unless superclass.respond_to?(:#{name}) and value = superclass.#{name}
-            @#{name} ||= ::Trust::InheritableAttribute::deep_copy(value.clone) # only do this once.
+            @#{name} ||= ::Trust::InheritableAttribute::deep_copy(value) # only do this once.
           end
         end_src
         instance_eval src, __FILE__, __LINE__
