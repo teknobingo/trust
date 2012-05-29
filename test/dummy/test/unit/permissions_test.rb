@@ -107,9 +107,19 @@ class PermissionsTest < ActiveSupport::TestCase
       assert Account::Credit.permits?(:audit)
       assert Account::Credit.new.permits?(:audit)
     end
-    should_eventually 'be created by guests if guest is wife' do
+    should 'be created by guests if guest is wife' do
+      login_as(:guest)
+      User.any_instance.stubs(:role_symbols).returns([:guest])
+      User.any_instance.stubs(:name).returns('wife')
+      assert Account::Credit.permits?(:create)
+      assert Account::Credit.new.permits?(:create)
     end
-    should_eventually 'not be created by guests unless guest is wife' do
+    should 'not be created by guests unless guest is wife' do
+      login_as(:guest)
+      User.any_instance.stubs(:role_symbols).returns([:guest])
+      User.any_instance.stubs(:name).returns('mistress')
+      assert !Account::Credit.permits?(:create)
+      assert !Account::Credit.new.permits?(:create)
     end
   end
 end

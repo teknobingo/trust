@@ -13,7 +13,16 @@ class Trust::Controller::PropertiesTest < ActiveSupport::TestCase
   end
 
   context 'instantiating' do
-    should 'make a fresh object'
+    should 'make a fresh object' do
+      controller = stub('controller', :superclass => false)
+      Trust::Controller::Properties.expects(:new).with(controller).once
+      assert !Trust::Controller::Properties.instantiate(controller).instance_variable_get(:@controller)
+    end
+
+    should 'clone controllers permissions' do
+      controller = stub('controller', :superclass => stub('superclass', :properties => Trust::Controller::Properties.new(true)))
+      assert Trust::Controller::Properties.instantiate(controller).instance_variable_get(:@controller)
+    end
   end
 
   context 'actions' do
