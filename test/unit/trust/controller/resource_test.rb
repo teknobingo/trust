@@ -193,8 +193,25 @@ class Trust::Controller::ResourceTest < ActiveSupport::TestCase
     end
     should 'discover variable names' do
       @resource = Trust::Controller::Resource.new(@controller, @properties, 'new',{}, @request)
+      @resource_info.expects(:plural_name).returns(:children)
       assert_equal :child, @resource.send(:instance_name)
       assert_equal :parent, @resource.send(:parent_name)
+      assert_equal :children, @resource.send(:plural_instance_name)
+    end
+    should 'have access to instances' do
+      @resource = Trust::Controller::Resource.new(@controller, @properties, 'new',{}, @request)
+      @resource.expects(:plural_instance_name).twice.returns(:children)
+      @resource.instances = [1]
+      assert_equal [1], @resource.instances
+      assert_equal [1], @controller.instance_variable_get(:@children)
+    end
+    should 'have access to instantiated' do
+      @resource = Trust::Controller::Resource.new(@controller, @properties, 'new',{}, @request)
+      @resource.expects(:instances).returns(1)
+      assert_equal 1, @resource.instantiated
+      @resource.expects(:instances).returns(nil)
+      @resource.expects(:instance).returns(2)
+      assert_equal 2, @resource.instantiated
     end
     should 'load as expected' do
       @resource = Trust::Controller::Resource.new(@controller, @properties, 'new',{}, @request)      

@@ -18,21 +18,33 @@ module Trust
       
       # Controller accessors
       def instance=(instance)
-        @controller.instance_variable_set("@#{instance_name}", instance)
+        @controller.instance_variable_set(:"@#{instance_name}", instance)
       end
       
       def instance
-        @controller.instance_variable_get("@#{instance_name}")
+        @controller.instance_variable_get(:"@#{instance_name}")
       end
       
       def parent=(instance)
-        @controller.instance_variable_set("@#{parent_name}", instance)        
+        @controller.instance_variable_set(:"@#{parent_name}", instance)
       end
 
       def parent
-        @controller.instance_variable_get("@#{parent_name}")
+        @controller.instance_variable_get(:"@#{parent_name}")
       end
       
+      def instances=(instances)
+        @controller.instance_variable_set(:"@#{plural_instance_name}", instances)
+      end
+
+      def instances
+        @controller.instance_variable_get(:"@#{plural_instance_name}")
+      end
+
+      def instantiated
+        instances || instance
+      end
+
       def klass
         resource_info.klass
       end
@@ -61,6 +73,10 @@ module Trust
       
       def instance_name
         resource_info.name
+      end
+      
+      def plural_instance_name
+        resource_info.plural_name
       end
       
       def parent_name
