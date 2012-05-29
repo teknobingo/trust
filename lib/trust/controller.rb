@@ -24,6 +24,9 @@ module Trust
     end
     
     module TrustInstanceMethods
+      def properties
+        self.class.properties
+      end
       def set_user
         Trust::Authorization.user = current_user
       end

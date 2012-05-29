@@ -66,15 +66,6 @@ module Trust
         end # other outcome would be collection actions
       end
       
-    private
-      def extract_resource_info(model_name, params)
-        ResourceInfo.new(model_name, params)
-      end
-      
-      def extract_parent_info(associations, params, request)
-        ParentInfo.new(associations, params, request)
-      end
-      
       def instance_name
         info.name
       end
@@ -86,6 +77,16 @@ module Trust
       def parent_name
         parent_info && parent_info.name
       end
+      
+      
+    private
+      def extract_resource_info(model_name, params)
+        ResourceInfo.new(model_name, params)
+      end
+      
+      def extract_parent_info(associations, params, request)
+        ParentInfo.new(associations, params, request)
+      end      
     end
 
     # Resorce resolves information about the resource accessed in action controller

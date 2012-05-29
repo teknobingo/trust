@@ -8,7 +8,9 @@ class Trust::Controller::PropertiesTest < ActiveSupport::TestCase
         @properties ||= Trust::Controller::Properties.new(self)
       end
     end
-    class ChildController < Controller
+    class PeopleController < Controller
+    end
+    class ::Person
     end
   end
 
@@ -22,6 +24,13 @@ class Trust::Controller::PropertiesTest < ActiveSupport::TestCase
     should 'clone controllers permissions' do
       controller = stub('controller', :superclass => stub('superclass', :properties => Trust::Controller::Properties.new(true)))
       assert Trust::Controller::Properties.instantiate(controller).instance_variable_get(:@controller)
+    end
+  end
+  
+  context 'information' do
+    should 'resolve class from model_name' do
+      Trust::Controller::Properties.any_instance.stubs(:model_name).returns(:people)
+      assert_equal Person, PeopleController.properties.model_class
     end
   end
 

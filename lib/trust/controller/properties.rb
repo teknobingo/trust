@@ -33,6 +33,10 @@ module Trust
         @model_name ||= (name && name.to_s) || controller.controller_path
       end
       
+      def model_class
+        model_name.to_s.classify.constantize
+      end
+      
       # Specify associated resources
       # Example:
       #   belongs_to :lottery
