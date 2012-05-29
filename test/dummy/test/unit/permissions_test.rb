@@ -51,6 +51,18 @@ class PermissionsTest < ActiveSupport::TestCase
       assert !Client.permits?(:create)
       assert !Client.new.permits?(:create)
     end
+    should 'be read by all roles' do
+      Permissions::Default.all do |role|
+        login_as(role)
+        assert Client.permits?(:read)
+        assert Client.new.permits?(:read)
+      end
+    end
+    should 'not be read by other roles' do
+      login_as(:blind_man)
+      assert !Client.permits?(:read)
+      assert !Client.new.permits?(:read)
+    end
   end
   context 'Account' do
     should 'be managed by system admins' do
