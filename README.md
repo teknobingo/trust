@@ -1,12 +1,12 @@
-= Trust
+# Trust
 
-=== Trust is a framework for authorization control - for Ruby On Rails.
+### Trust is a framework for authorization control - for Ruby On Rails.
 
 - Why yet another authorization framework you may ask?
 
 Well, we used DeclarativeAuthorization[http://github.com/stffn/declarative_authorization] for a while, but got stuck when it comes to name-spaces and inheritance. So, we investigated in the possibilities of using CanCan[http://github.com/ryanb/cancan] and CanTango[http://github.com/kristianmandrup/cantango], and found that CanCan could be slow, because all authorizations has to be loaded on every request. CanTango has tackled this problem by implementing cashing, but the framework is still evolving and seems fairly complex. At the same time, CanTango is role focused and not resource focused.
 
-=== What will you benefit from when using Trust?
+### What will you benefit from when using Trust?
 
 * Resource focused permissions, not role focused
 * Complete support for inheritance in controllers
@@ -17,22 +17,22 @@ Well, we used DeclarativeAuthorization[http://github.com/stffn/declarative_autho
 * Natural code evaluation in the authorizations declaration, i.e. you understand completely what is going on, because the implementation is done the way you implement condifitions in rails for validations and alike.
 * Automatic loading of instances and parents in controller
 
-=== What is not supported in Trust
+### What is not supported in Trust
 
 * Loading datasets for the index action. You may use other plugins / gems for doing this, or you may implement your own mechanism.
 
-=== Currently not supported, but may be in the future
+### Currently not supported, but may be in the future
 
 * Support for devise. However you may easily implement this by overriding one method in your controller.
 * cannot and cannot? expressions.
 
-= Install and Setup
+# Install and Setup
 
 Install the gem
 
     gem install trust
 
-=== Define authorizations
+### Define authorizations
 
 Create the permissions file in your model directory. Example
 
@@ -76,7 +76,7 @@ You can also create aliases for actions. We have defined a predefined set of ali
 Processing of aliases are done in such way that permissions per action is expanded when the permissions are loaded, so thif you define :update when declaring the permissions, there will be one permission for :update and one for :edit
 
 
-=== Apply access control in controller
+### Apply access control in controller
 
 Place _trusted_ in your controller after the user has been identified. Someshing like this:
 
@@ -108,7 +108,7 @@ class ApplicationController < ActionController::Base
 end
 ```
 
-=== Define associations in your controller
+### Define associations in your controller
 
 For nested resources you can easily define the associations using _belongs\_to_ like this:
 
@@ -123,7 +123,7 @@ end
 You can specify as many associations as you like.
 
 
-== The can? and permits? method
+## The can? and permits? method
 
 The can? method is accessible from controller and views. Here are some coding examples:
 
@@ -144,7 +144,7 @@ On ActiveRecord objects you will use permits?
 Customer.permits? :create, @client  # does the current user have permission to create customers?
 ```
 
-== Instance variables
+## Instance variables
 
 The filter :load\_resource will automatically load the instance for the resource in the controller. It will by default use the controller\_path to determine the name of the instance variable. Here are a couple of examples:
 
@@ -187,7 +187,7 @@ You can even assign these if you like. The resource is also exposed as helper, s
 
 
 
-== Overriding defaults
+## Overriding defaults
 
 If you prefer to use some other user reference than current_user you can override the method set_user like this in your controller:
 
