@@ -131,6 +131,16 @@ class PermissionsTest < ActiveSupport::TestCase
       assert !Account.permits?(:create)
       assert !Account.new.permits?(:create)
     end
+    should 'be updateable by creator' do
+      login_as(:accountant)
+      assert Account.create.permits?(:update)
+    end
+    should 'be not be updateable by others' do
+      login_as(:guest)
+      account = Account.create
+      login_as(:accountant)
+      assert !account.permits?(:update)
+    end
   end
   context 'Account::Credit' do
     should 'be managed by system admins' do
