@@ -184,8 +184,33 @@ resource.parent   => accesses the parent instance
 
 You can even assign these if you like. The resource is also exposed as helper, so you can access it in views.
 
+## Overriding resource permits in the controller
 
+Say you have a controller without a model or want to override resource permits in given situations. You can do this with with the _permit_ method:
 
+``` Ruby
+class ApplicationController < ActionController::Base
+  trusted
+end
+
+class Controller < ApplicationController
+  permit :all
+end
+```
+
+It allows fine grained controll in the same pattern as in the permission model:
+
+``` Ruby
+class Controller < ApplicationController
+  permit :index
+  permit :show, :if => :authenticated?
+  permit :create, :edit, :delete, :if => lambda{ authenticated? && current_user.admin? }
+
+  def authenticated?
+    is_the_user_authenticated?
+  end
+end
+```
 
 ## Overriding defaults
 
