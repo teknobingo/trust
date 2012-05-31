@@ -39,4 +39,18 @@ class Trust::ActiveRecordTest < ActiveSupport::TestCase
       @account.permits? :manage, :foo
     end
   end
+  context 'ensure_permitted!' do
+    setup do
+      @user = User.new
+      @account = Account.new
+    end
+    should 'support calls to athorized? on class level' do
+      Trust::Authorization.expects(:authorize!).with(:manage,Account,:foo)
+      Account.ensure_permitted! :manage, :foo
+    end
+    should 'support calls to athorized? on instance' do
+      Trust::Authorization.expects(:authorize!).with(:manage,@account,:foo)
+      @account.ensure_permitted! :manage, :foo
+    end
+  end
 end

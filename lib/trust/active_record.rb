@@ -25,7 +25,30 @@
 module Trust
   module ActiveRecord
     extend ActiveSupport::Concern
-    
+# = Trust::ActiveRecord extension
+# Extends ActiveRecord with the +permits?+ and +ensure_permitted!+ method on class and instances
+#
+# ==== Examples
+#
+#    # If current user is permitted to create customers, create it
+#    if Customer.permits? :create
+#      Customer.create attributes
+#    end
+#    
+#    # If current user is permitted to create accounts for the given customer, create it
+#    if Account.permits? :create, @customer
+#      Account.create attributes
+#    end
+#    
+#    # If current user is permitted to update the given customer, update it
+#    if @customer.permits? :update
+#      @customer.save
+#    end
+#    
+#    # Raise an exception if user is not permitted to update the given customer, else save it
+#    @customer.ensure_permitted! :update 
+#    @customer.save
+
     included do
       include ClassMethods
     end
@@ -33,6 +56,9 @@ module Trust
     module ClassMethods
       def permits?(action, parent = nil)
         Trust::Authorization.authorized?(action, self, parent)
+      end
+      def ensure_permitted!(action, parent = nil)
+        Trust::Authorization.authorize!(action, self, parent)
       end
     end
   end
