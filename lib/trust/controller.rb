@@ -68,7 +68,7 @@ module Trust
       end
 
       def can?(action_name, subject = resource.instance || resource.klass, parent = resource.parent)
-        Trust::Authorization.authorize!(action_name, subject, parent)
+        Trust::Authorization.authorized?(action_name, subject, parent)
       end
     end
   end
