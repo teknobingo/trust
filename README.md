@@ -4,15 +4,14 @@
 
 - Why yet another authorization framework you may ask?
 
-Well, we used DeclarativeAuthorization[http://github.com/stffn/declarative_authorization] for a while, but got stuck when it comes to name-spaces and inheritance. So, we investigated in the possibilities of using CanCan[http://github.com/ryanb/cancan] and CanTango[http://github.com/kristianmandrup/cantango], and found that CanCan could be slow, because all authorizations has to be loaded on every request. CanTango has tackled this problem by implementing cashing, but the framework is still evolving and seems fairly complex. At the same time, CanTango is role focused and not resource focused.
+Well, we used [DeclarativeAuthorization](http://github.com/stffn/declarative_authorization) for a while, but got stuck when it comes to name-spaces and inheritance. So, we investigated in the possibilities of using [CanCan](http://github.com/ryanb/cancan) and [CanTango](http://github.com/kristianmandrup/cantango), and found that CanCan could be slow, because all authorizations has to be loaded on every request. CanTango has tackled this problem by implementing caching, but the framework is still evolving and seems fairly complex. At the same time, CanTango is role focused and not resource focused.
 
 ### What will you benefit from when using Trust?
 
 * Resource focused permissions, not role focused
 * Complete support for inheritance in controllers
 * Complete support for namespaces, both controllers and models
-* Complete support for shortened associations (e.g. if y
-ou have models in name spaces that relates to other models in the name space)
+* Complete support for shortened associations (e.g. if you have models in name spaces that relates to other models in the name space)
 * Fast permission loading, where no cashing is needed. All permissions are declared on class level, so once loaded, they stay in memory.
 * Support for inheritance in the authorization model
 * Natural code evaluation in the authorizations declaration, i.e. you understand completely what is going on, because the implementation is done the way you implement condifitions in rails for validations and alike.
@@ -62,28 +61,30 @@ module Permissions
 end
 ```
 
-The following attributes will be accessible in a Permission class:
+The following attributes will be accessible in a Permissions class:
 
-* *subject*  - the resource that is currently being tested for authorization
-* *parent* - the parent of the authorization when resource is nested
-* *user* - the user accessing the resource
-* *klass* - the resource class
-* *action* - the action that triggered the authorization
+* ```subject``` - the resource that is currently being tested for authorization
+* ```parent```  - the parent of the authorization when resource is nested
+* ```user```    - the user accessing the resource
+* ```klass```   - the resource class
+* ```action```  - the action that triggered the authorization
 
-Keep in mind that the permission object is being instanciated to do authorization, and not the class.
+Keep in mind that the permission object will be instanciated to do authorization, and not the class.
 You can extend the Trust::Permissions with more functionality if needed.
 
-You can also create aliases for actions. We have defined a predefined set of aliases. See Trust::Permissions.action\_aliases.
+You can also create aliases for actions. We have defined a predefined set of aliases. See [Trust::Permissions.action\_aliases](/lib/trust/permissions.rb).
 Processing of aliases are done in such way that permissions per action is expanded when the permissions are loaded, so thif you define :update when declaring the permissions, there will be one permission for :update and one for :edit
 
 
 ### Apply access control in controller
 
-Place ```trustee``` in your controller after the user has been identified. Someshing like this:
+Place ```trustee``` in your controller after the user has been identified. Something like this:
 
 ``` Ruby
-
-
+class AccountsController < ApplicationController
+  login_required
+  trustee
+end
 ```
 
 The trustee statement will set up 3 before_filters in your controller:
@@ -94,9 +95,9 @@ before_filter :load_resource
 before_filter :access_control
 ```
 
-Trust assumes that current\_user is accessible. The user object must repond to the method role\_symbols which should return an array of one or more roles for the user.
+Trust assumes that ```current\_user``` is accessible. The user object must respond to the method ```role\_symbols``` which should return an array of one or more roles for the user.
 
-Handling access denied situations in your controller. Implement the following in your Application controller:
+Handling access denied situations in your controller. Implement something like the following in your ApplicationController:
 
 ``` Ruby
 class ApplicationController < ActionController::Base
@@ -109,7 +110,7 @@ end
 
 ### Define associations in your controller
 
-For nested resources you can easily define the associations using _belongs\_to_ like this:
+For nested resources you can easily define the associations using ```belongs\_to``` like this:
 
 ``` Ruby
 class AccountsController < ApplicationController
@@ -126,7 +127,7 @@ You can specify as many associations as you like.
 
 The can? method is accessible from controller and views. Here are some coding examples:
 
-In controller or views you will use can?
+#### In controller or views you will use can?
 
 ``` Ruby
 can? :edit                          # does the current user have permission to edit the current resource? 
@@ -136,7 +137,7 @@ can? :edit, @customer               # does the current user have permission to e
 can? :edit, @account, @client       # is current user allowed to edit the account associated with the client?
 ```
 
-On ActiveRecord objects you will use permits?
+#### On ActiveRecord objects you will use permits?
 
 ``` Ruby
 @customer.permits? :edit            # does the current user have permission to edit the given customer?
@@ -145,16 +146,16 @@ Customer.permits? :create, @client  # does the current user have permission to c
 
 ## Instance variables
 
-The filter :load\_resource will automatically load the instance for the resource in the controller. It will by default use the controller\_path to determine the name of the instance variable. Here are a couple of examples:
+The filter ```load\_resource``` will automatically load the instance for the resource in the controller. It will by default use the controller\_path to determine the name of the instance variable. Here are a couple of examples:
 
 ``` Ruby
 UsersController => @user
 Account::CreditsController => @account_credit
 ```
 
-If it is a nested resource, it will also instantiate the parent class, using the namedefined in belongs\_to to determine the name. E.g. if you have defined belongs_to :client, it will look for the parameter :client\_id and perform a find like Client.find(client\_id). Finding the resource will be done through the association between the two, such as client.accounts.find(id)
+If it is a nested resource, it will also instantiate the ```parent``` class, using the namedefined in belongs\_to to determine the name. E.g. if you have defined belongs_to :client, it will look for the parameter ```:client\_id``` and perform a find like ```Client.find(client\_id)```. Finding the resource will be done through the association between the two, such as ```client.accounts.find(id)```.
 
-You can override the naming by specifying model\_name before trustee, like this
+You can override the naming by specifying ```model\_name``` like this
 
 ``` Ruby
 class AccountsController < ApplicationController
@@ -182,14 +183,19 @@ resource.parent   => accesses the parent instance
 ```
 
 You can even assign these if you like. The resource is also exposed as helper, so you can access it in views.
+For simplicity we have also exposed an ```instances``` accessor that you can assign when you have a multirecord result,
+such as for index action.
 
-## Overriding resource permits in the controller
+## Overriding defaults
 
-Say you have a controller without a model or want to override resource permits in given situations. You can do this with with the _permit_ method:
+### Overriding resource permits in the controller
+
+Say you have a controller without a model or do not want to perform access control. You can turn off the featur in your controller
 
 ``` Ruby
 class ApplicationController < ActionController::Base
-  trustee
+  login_required
+  trustee  # By default we want to test for permissions
 end
 
 class MyController < ApplicationController
@@ -197,7 +203,7 @@ class MyController < ApplicationController
 end
 ```
 
-### Alternatives
+#### Alternatives
 ``` Ruby
 class MyController < ApplicationController
   set_user :off         # turns off set_user callback
@@ -206,7 +212,7 @@ class MyController < ApplicationController
 end
 ```
 
-### More specifically
+#### More specifically
 For all call backs and ```trustee``` you can use ```:only``` and ```:except``` options.
 Example toggle create action off
 ``` Ruby
@@ -216,7 +222,7 @@ class MyController < ApplicationController
 end
 ```
 
-### Yet another alternative, avoiding resource loading
+#### Yet another alternative, avoiding resource loading
 Avoid resource loading on ```show``` action
 ``` Ruby
 class MyController < ApplicationController
@@ -224,23 +230,14 @@ class MyController < ApplicationController
 end
 ```
 
+### Overriding set_user
 
-
-
-## Overriding defaults
-
-If you prefer to use some other user reference than current_user you can override the method set_user like this in your controller:
+If you prefer to use some other user reference than current_user you can override the method ```set\_user``` like this in your controller:
 
 ``` Ruby
 def set_user
-  Trust::Authorization.user = Thread[:current_user]
+  Trust::Authorization.user = User.current
 end
 ```
 
-You may choose not to use all the before\_filers setup by Trust, and rather use your own implementation. This is entirely up to you.
-You may want to have a look at Trust::Controller to see what it is doing to make your own customizations.
 
-
-
-
-        
