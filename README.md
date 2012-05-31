@@ -208,7 +208,7 @@ end
 ```
 
 ### More specifically
-For all call backs and ```trustee´´´ you can use ```:only´´´ and ```:except´´´ options.
+For all call backs and ```trustee``` you can use ```:only``` and ```:except``` options.
 Example toggle create action off
 ``` Ruby
 class MyController < ApplicationController
@@ -218,7 +218,7 @@ end
 ```
 
 ### Yet another alternative, avoiding resource loading
-Avoid resource loading on ```show´´´ action
+Avoid resource loading on ```show``` action
 ``` Ruby
 class MyController < ApplicationController
   actions :except => :show
