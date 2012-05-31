@@ -36,13 +36,32 @@ module Trust
       
       delegate :belongs_to, :actions, :model_name, :to => :properties
 
-      def trusted(options = {})
+      def trustee(*args)
         module_eval do
           include TrustInstanceMethods
-          before_filter :set_user, options
-          before_filter :load_resource, options
-          before_filter :access_control, options
+          set_user *args
+          load_resource *args
+          access_control *args
           helper_method :can?, :resource
+        end
+      end
+      
+      def set_user(*args)
+        _filter_setting(:set_user, *args)
+      end
+      def load_resource(*args)
+        _filter_setting(:load_resource, *args)
+      end
+      def access_control(*args)
+        _filter_setting(:access_control, *args)
+      end
+      
+    private
+      def _filter_setting(method, *args)
+        options = args.extract_options!
+        skip_before_filter method
+        unless args.include? :off
+          before_filter method, options
         end
       end
     end

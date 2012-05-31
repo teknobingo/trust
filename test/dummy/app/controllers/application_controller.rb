@@ -24,7 +24,7 @@
 
 class ApplicationController < ActionController::Base
   protect_from_forgery
-  trusted
+  trustee
 
   attr_accessor :current_user
 

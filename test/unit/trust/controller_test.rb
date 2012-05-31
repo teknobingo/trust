@@ -27,7 +27,7 @@ require 'test_helper'
 class Trust::ControllerTest < ActiveSupport::TestCase
   setup do
     class Controller < ActionController::Base
-      trusted
+      trustee
     end
     class DerivedController < Controller
     end
@@ -36,12 +36,12 @@ class Trust::ControllerTest < ActiveSupport::TestCase
     should 'instantiate properties' do
       assert_kind_of Trust::Controller::Properties, Controller.properties
     end
-    should 'trusted set filers' do
+    should 'trustee set filers' do
       options = {:hello => :there}
       Controller.expects(:before_filter).with(:set_user, options)
       Controller.expects(:before_filter).with(:load_resource, options)
       Controller.expects(:before_filter).with(:access_control, options)
-      Controller.trusted options
+      Controller.trustee options
     end
     should 'delegate to resource' do
       Controller.properties.expects(:belongs_to)
@@ -51,6 +51,29 @@ class Trust::ControllerTest < ActiveSupport::TestCase
       Controller.actions
       Controller.model_name
     end
+
+    context 'callbacks' do
+      should 'be set_user, load_resource, access_control' do
+        %w(set_user load_resource access_control).map(&:to_sym).each do |callback|
+          assert Controller.respond_to?(callback), "'#{callback}' not included"
+          Controller.expects(:_filter_setting).with(callback, 'gurba')
+          Controller.send(callback, 'gurba')
+        end
+      end
+    end
+    
+    context '_filter_setting' do
+      should 'setup correct instance method callback' do
+        Controller.expects(:skip_before_filter).with(:access_control).times(3)
+        Controller.expects(:before_filter).with(:access_control,{})
+        Controller.access_control
+        Controller.expects(:before_filter).with(:access_control,{:only => :index})
+        Controller.access_control :only => :index
+        Controller.expects(:before_filter).never
+        Controller.access_control :off
+      end
+    end
+    
   end
   context 'instance methods' do
     setup do
