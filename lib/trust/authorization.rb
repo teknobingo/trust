@@ -25,6 +25,10 @@
 module Trust
   class Authorization
     class << self
+      # Returns true if user is authorized to perform +action+ on +object+ or +class+
+      # If +parent+ is given, +parent+ may be tested in the implemented Permissions class
+      # This method is called by the +can?+ method in Trust::Controller, and is normally 
+      # not necessary to call directly.
       def authorized?(action, object_or_class, parent)
         if object_or_class.is_a? Class
           klass = object_or_class
@@ -39,17 +43,26 @@ module Trust
         auth.new(user, action.to_sym, klass, object, parent).authorized?
       end
       
+      # Tests if user is authorized to perform +action+ on +object+ or +class+, with the 
+      # optional parent and raises Trust::AccessDenied exception if not permitted.
+      # If using this method directly, an optional +message+ can be passed in to 
+      # replace the default message used.
+      # This method is used by the +access_control+ method in Trust::Controller
       def authorize!(action, object_or_class, parent, message = nil)
         access_denied!(message, action, object_or_class, parent) unless authorized?(action, object_or_class, parent)
       end
       
-      def access_denied!(message = nil, action = nil, subject = nil, parent = nil)
+      def access_denied!(message = nil, action = nil, subject = nil, parent = nil) # nodoc
         raise AccessDenied.new(message, action, subject)
       end
       
+      # returns the current +user+ being used in the authorization process
       def user
         Thread.current["current_user"] 
       end
+      
+      # sets the current +user+ to be used in the authorization process.
+      # the +user+ is thread safe.
       def user=(user)
         Thread.current["current_user"] = user
       end
