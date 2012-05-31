@@ -72,7 +72,7 @@ The following attributes will be accessible in a Permissions class:
 Keep in mind that the permission object will be instanciated to do authorization, and not the class.
 You can extend the Trust::Permissions with more functionality if needed.
 
-You can also create aliases for actions. We have defined a predefined set of aliases. See [Trust::Permissions.action\_aliases](lib/trust/permissions.rb).
+You can also create aliases for actions. We have defined a predefined set of aliases. See [Trust::Permissions.action\_aliases](./lib/trust/permissions.rb).
 Processing of aliases are done in such way that permissions per action is expanded when the permissions are loaded, so thif you define :update when declaring the permissions, there will be one permission for :update and one for :edit
 
 
