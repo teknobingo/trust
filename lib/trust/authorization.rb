@@ -55,7 +55,7 @@ module Trust
       end
       
     private
-      def authorizing_class(klass)
+      def authorizing_class(klass) # nodoc
         auth = nil
         klass.ancestors.each do |k|
           break if k == ::ActiveRecord::Base

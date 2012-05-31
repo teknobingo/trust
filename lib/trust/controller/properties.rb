@@ -33,7 +33,7 @@ module Trust
       attr_accessor :member_actions
       attr_accessor :collection_actions
       
-      def initialize(controller)
+      def initialize(controller) # nodoc
         @controller = controller
         @associations = []
         @new_actions = [:new, :create]
@@ -53,15 +53,28 @@ module Trust
         end
       end
 
+      # returns or sets the model_name to be used in a controller
+      # If not set, the controller_path is used
+      # You can override the model to be accessed in a controller by setting the model_name
+      #
+      # ==== Example
+      #
+      #    # You have a controller which inherits from a generic controller and it has not the same name. Below
+      #    model_name :account # will assume that the class to be Account and instance variables to be @account/@accounts
+      #
+      #    # name spaced models
+      #    model_name :"customer/account"
+      #
       def model_name(name = nil)
         @model_name ||= (name && name.to_s) || controller.controller_path
       end
       
+      # Returns the class for the model
       def model_class
         model_name.to_s.classify.constantize
       end
       
-      # Specify associated resources
+      # Specify associated resources (nested resources)
       # Example:
       #   belongs_to :lottery
       #   belongs_to :table, :card_game

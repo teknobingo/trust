@@ -25,11 +25,26 @@
 module Trust
   module Controller
     class Resource
+# = Trust::Controller::Resource 
+# Collects information about the current resource and relations. 
+# Handles the loading of the resource and its possible parent, i.e. setting the relevant instance variables
+# It assumes the name of the resource is built on the controllers name, but this can be overridden in your
+# controller by setting the +model_name+
+#
+# Examples:
+#
+#    # controller name AccountsController
+#    resource.instance # => @account
+#
+#    # controller name Customer::AccountsController
+#    resource.instance # => @customer_account
+#
+      
       delegate :logger, :to => Rails
       attr_reader :properties, :params, :action
       attr_reader :info, :parent_info, :relation
 
-      def initialize(controller, properties, action_name, params, request)
+      def initialize(controller, properties, action_name, params, request) # nodoc
         @action = action_name.to_sym
         
         @controller, @properties, @params = controller, properties, params
@@ -39,44 +54,70 @@ module Trust
         end
         @relation = @info.relation(@parent_info)
       end
-      
-      # Controller accessors
-      def instance=(instance)
-        @controller.instance_variable_set(:"@#{instance_name}", instance)
-      end
-      
+
+      # Returns the instance variable in the controller
       def instance
         @controller.instance_variable_get(:"@#{instance_name}")
       end
       
+      # Sets the instance variable
+      # Normally set by +load+
+      # You can access this method from the resource object.
+      #
+      # ==== Example
+      #
+      #    resource.instance = Account.find_by_number(123456)
+      def instance=(instance)
+        @controller.instance_variable_set(:"@#{instance_name}", instance)
+      end      
+      
+      # Returns the parameters for the instance
+      #
+      # ==== Example
+      #
+      #     # in AccountsController
+      #     resource.instance_params  # same as params[:account]
       def instance_params
         info.params
       end
-      
-      def parent=(instance)
-        @controller.instance_variable_set(:"@#{parent_name}", instance)
-      end
 
+      # Returns the parents instance variable when you use +belongs_to+ for nested routes
       def parent
         @controller.instance_variable_get(:"@#{parent_name}")
       end
       
-      def instances=(instances)
-        @controller.instance_variable_set(:"@#{plural_instance_name}", instances)
+      # Sets the parent instance variable
+      def parent=(instance)
+        @controller.instance_variable_set(:"@#{parent_name}", instance)
       end
 
+      # Returns the cinstance variable for ollection
       def instances
         @controller.instance_variable_get(:"@#{plural_instance_name}")
       end
 
+      # Sets the instance variable for collection
+      # You may want to set this variable in your index action, we do not yet support loading of collections
+      def instances=(instances)
+        @controller.instance_variable_set(:"@#{plural_instance_name}", instances)
+      end
+
+      # Returns either the instances or the instance. 
+      # We have found that this can be useful in some implementation patterns
       def instantiated
         instances || instance
       end
 
+      # Returns the class for the resource
       def klass
         info.klass
       end
 
+      # Loads the resource 
+      # See Trust::Controller::Properties which controls the behavior of this method.
+      # It will normally find the instance variable for existing object or initialize them as new.
+      # If using nested resources and +belongs_to+ has been declared in the controller it will use the 
+      # parent relation if found.
       def load
         self.parent = parent_info.object if parent_info
         if properties.new_actions.include?(action)
@@ -90,47 +131,61 @@ module Trust
         end # other outcome would be collection actions
       end
       
+      # Returns the name of the instance for the resource
+      # ==== Example
+      #
+      #     # in AccountsController
+      #     resource.instance_name  # => :account
       def instance_name
         info.name
       end
       
+      # Returns the plural name of the instance for the resource
+      # ==== Example
+      #
+      #     # in AccountsController
+      #     resource.plural_instance_name  # => :accounts
       def plural_instance_name
         info.plural_name
       end
       
+      # Returns the name of the parent resource
+      # ==== Example
+      #
+      #     # in AccountsController where belongs_to :customer has been declared
+      #     resource.parent_name  # => :customer
       def parent_name
         parent_info && parent_info.name
       end
       
       
     private
-      def extract_resource_info(model_name, params)
+      def extract_resource_info(model_name, params) # nodoc
         ResourceInfo.new(model_name, params)
       end
       
-      def extract_parent_info(associations, params, request)
+      def extract_parent_info(associations, params, request) #nodoc
         ParentInfo.new(associations, params, request)
       end      
     end
 
-    # Resorce resolves information about the resource accessed in action controller
-    # This is automatically included in ActionController as long as the method resource is accessed
+    # ResorceInfo resolves information about the resource accessed in action controller
     #
     # Examples in PeopleController (simple case)
     # ===
-    #   resource.klass => Person
-    #   resource.params => {:person => {...}}       # fetches the parameters for the resource
-    #   resource.name => :person
-    #   resource.plural_name => :people
-    #   resource.path => 'people'                   # this is the controller_path
+    #   resource.info.klass => Person
+    #   resource.info.params => {:person => {...}}       # fetches the parameters for the resource
+    #   resource.info.name => :person
+    #   resource.info.plural_name => :people
+    #   resource.info.path => 'people'                   # this is the controller_path
     #
     # Examples in Lottery::AssignmentsController (with name space)
     # ===
-    #   resource.klass => Lottery::Assignment
-    #   resource.params => {:lottery_assignment => {...}}
-    #   resource.name => :lottery_assignment
-    #   resource.plural_name => :lottery_assignments
-    #   resource.path => 'lottery/assignments'      # this is the controller_path
+    #   resource.info.klass => Lottery::Assignment
+    #   resource.info.params => {:lottery_assignment => {...}}
+    #   resource.info.name => :lottery_assignment
+    #   resource.info.plural_name => :lottery_assignments
+    #   resource.info.path => 'lottery/assignments'      # this is the controller_path
     #
     # Examples in ArchiveController (with inheritance) 
     # Assumptions on routes:
@@ -139,12 +194,12 @@ module Trust
     #   resources :public_acrvives, :controller => :archives
     # examples below assumes that the route secret_arcives is being accessed at the moment
     # ===
-    #   resource.klass => Archive
-    #   resource.params => {:secret_archive => {...}}
-    #   resource.name => :archive
-    #   resource.plural_name => :archives
-    #   resource.path => 'archive'                   # this is the controller_path
-    #   resource.real_class => SecretArchive         # Returns the real class which is accessed at the moment
+    #   resource.info.klass => Archive
+    #   resource.info.params => {:secret_archive => {...}}
+    #   resource.info.name => :archive
+    #   resource.info.plural_name => :archives
+    #   resource.info.path => 'archive'                   # this is the controller_path
+    #   resource.info.real_class => SecretArchive         # Returns the real class which is accessed at the moment
     #
     
     class Resource::Info

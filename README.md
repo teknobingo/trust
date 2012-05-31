@@ -11,7 +11,8 @@ Well, we used DeclarativeAuthorization[http://github.com/stffn/declarative_autho
 * Resource focused permissions, not role focused
 * Complete support for inheritance in controllers
 * Complete support for namespaces, both controllers and models
-* Complete support for shortened associations (e.g. if you have models in name spaces that relates to other models in the name space)
+* Complete support for shortened associations (e.g. if y
+ou have models in name spaces that relates to other models in the name space)
 * Fast permission loading, where no cashing is needed. All permissions are declared on class level, so once loaded, they stay in memory.
 * Support for inheritance in the authorization model
 * Natural code evaluation in the authorizations declaration, i.e. you understand completely what is going on, because the implementation is done the way you implement condifitions in rails for validations and alike.
@@ -78,13 +79,11 @@ Processing of aliases are done in such way that permissions per action is expand
 
 ### Apply access control in controller
 
-Place _trustee_ in your controller after the user has been identified. Someshing like this:
+Place ```trustee``` in your controller after the user has been identified. Someshing like this:
 
 ``` Ruby
-class AccountsController < ApplicationController
-  login_required
-  trustee
-end
+
+
 ```
 
 The trustee statement will set up 3 before_filters in your controller:
