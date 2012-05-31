@@ -78,16 +78,16 @@ Processing of aliases are done in such way that permissions per action is expand
 
 ### Apply access control in controller
 
-Place _trusted_ in your controller after the user has been identified. Someshing like this:
+Place _trustee_ in your controller after the user has been identified. Someshing like this:
 
 ``` Ruby
 class AccountsController < ApplicationController
   login_required
-  trusted
+  trustee
 end
 ```
 
-The trusted statement will set up 3 before_filters in your controller:
+The trustee statement will set up 3 before_filters in your controller:
   
 ``` Ruby
 before_filter :set_user
@@ -116,7 +116,7 @@ For nested resources you can easily define the associations using _belongs\_to_ 
 class AccountsController < ApplicationController
   login_required
   belongs_to :client
-  trusted
+  trustee
 end
 ```
 
@@ -155,13 +155,13 @@ Account::CreditsController => @account_credit
 
 If it is a nested resource, it will also instantiate the parent class, using the namedefined in belongs\_to to determine the name. E.g. if you have defined belongs_to :client, it will look for the parameter :client\_id and perform a find like Client.find(client\_id). Finding the resource will be done through the association between the two, such as client.accounts.find(id)
 
-You can override the naming by specifying model\_name before trusted, like this
+You can override the naming by specifying model\_name before trustee, like this
 
 ``` Ruby
 class AccountsController < ApplicationController
   login_required
   model_name :wackount
-  trusted
+  trustee
 end
 ```
 
@@ -171,7 +171,7 @@ If you want to override the name with namespacing then
 class Account::CreditsController < ApplicationController
   login_required
   model_name :"account/wreckit"
-  trusted
+  trustee
 end
 ```
 
@@ -190,27 +190,43 @@ Say you have a controller without a model or want to override resource permits i
 
 ``` Ruby
 class ApplicationController < ActionController::Base
-  trusted
+  trustee
 end
 
-class Controller < ApplicationController
-  permit :all
+class MyController < ApplicationController
+  trustee :off   # turns off all callbacks
 end
 ```
 
-It allows fine grained controll in the same pattern as in the permission model:
-
+### Alternatives
 ``` Ruby
-class Controller < ApplicationController
-  permit :index
-  permit :show, :if => :authenticated?
-  permit :create, :edit, :delete, :if => lambda{ authenticated? && current_user.admin? }
-
-  def authenticated?
-    is_the_user_authenticated?
-  end
+class MyController < ApplicationController
+  set_user :off         # turns off set_user callback
+  load_resource :off    # do not load resources
+  access_control :off   # turn access control off
 end
 ```
+
+### More specifically
+For all call backs and ```trustee´´´ you can use ```:only´´´ and ```:except´´´ options.
+Example toggle create action off
+``` Ruby
+class MyController < ApplicationController
+  load_resource   :except => :create
+  access_control  :except => :create
+end
+```
+
+### Yet another alternative, avoiding resource loading
+Avoid resource loading on ```show´´´ action
+``` Ruby
+class MyController < ApplicationController
+  actions :except => :show
+end
+```
+
+
+
 
 ## Overriding defaults
 
