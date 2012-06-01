@@ -40,7 +40,6 @@ module Trust
     extend ActiveSupport::Concern
 
     module ClassMethods
-      # Source: https://github.com/apotonick/hooks/blob/master/lib/hooks/inheritable_attribute.rb
       # Creates an inheritable attribute with accessors in the singleton class. Derived classes inherit the
       # attributes. This is especially helpful with arrays or hashes that are extended in the inheritance
       # chain. Note that you have to initialize the inheritable attribute.

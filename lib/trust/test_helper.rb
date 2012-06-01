@@ -23,14 +23,20 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 class Trust::ResourceHelper
-  attr_accessor :instance
+  attr_accessor :instance, :parent_instance, :instances
+  attr_reader :properties, :params, :action, :instance_params
+  attr_reader :info, :parent_info, :relation
   class << self
     attr_accessor :properties
+  end
+  
+  def instantiated
+    instances || instance
   end
 end
 
 class ActionView::TestCase
-  # allows you to 
+  # allows you to stub resource for helpers
   def resource
     @resource ||= Trust::ResourceHelper.new    
   end
