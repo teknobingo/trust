@@ -126,7 +126,7 @@ module Trust
   
     def authorized?
       authorized = nil
-      user.role_symbols.each do |role|
+      user && user.role_symbols.each do |role|
         (permissions[role] || {}).each do |act, opt|
           if act == action
             break if (authorized = opt.any? ? eval_expr(opt) : true)
@@ -206,7 +206,7 @@ module Trust
           raise ArgumentError, "Must have a block or a can expression" unless perms = options[:can]
           @@can_expressions = 0
         end
-        roles.each do |role|
+        roles.flatten.each do |role|
           self.permissions[role] ||= []
           self.permissions[role] += perms
         end

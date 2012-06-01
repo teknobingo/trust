@@ -189,8 +189,9 @@ module Trust
       #   
       def relation(associated_resource)
         if associated_resource && associated_resource.object
-          associated_resource.klass.reflect_on_association(plural_name) ? 
-            associated_resource.object.send(plural_name) : associated_resource.object.send(klass.to_s.demodulize.underscore.pluralize)
+          name = associated_resource.as || plural_name
+          associated_resource.klass.reflect_on_association(name) ? 
+            associated_resource.object.send(name) : associated_resource.object.send(klass.to_s.demodulize.underscore.pluralize)
         else
           klass
         end
@@ -198,10 +199,11 @@ module Trust
     end
 
     class Resource::ParentInfo < Resource::Info
-      attr_reader :object
+      attr_reader :object,:as
       def initialize(resources, params, request)
-        ptr = resources.detect do |r|
+        ptr = resources.detect do |r,as|
           @klass = classify(r)
+          @as = as
           ([@klass] + @klass.descendants).detect do |c|
             @name = c.to_s.underscore.tr('/','_').to_sym
             unless @id = request.symbolized_path_parameters["#{@name}_id".to_sym]

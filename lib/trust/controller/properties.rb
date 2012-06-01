@@ -35,7 +35,7 @@ module Trust
       
       def initialize(controller)
         @controller = controller
-        @associations = []
+        @associations = {}
         @new_actions = [:new, :create]
         @member_actions = [:show, :edit, :update, :destroy]
         @collection_actions = [:index]
@@ -43,7 +43,7 @@ module Trust
 
       class << self
         def instantiate(controller)
-          if controller.superclass.respond_to?(:properties) 
+          if controller.superclass.instance_variable_get(:@properties)
             object = controller.superclass.properties.clone
             object.instance_variable_set(:@controller, controller)
           else
@@ -65,12 +65,15 @@ module Trust
       # Example:
       #   belongs_to :lottery
       #   belongs_to :table, :card_game
+      #   belongs_to :card_game, :as => :bridge
       #
       def belongs_to(*resources)
         raise ArgumentError, "You must specify at least one resource after belongs_to" unless resources
-        # options = resources.extract_options!
-        @associations += Array.wrap(resources)
-        logger.debug "#{@model_name || controller.controller_path} belongs_to #{@belongs_to}"
+        logger.debug "#{@model_name || controller.controller_path} belongs_to #{resources.inspect}"
+        options = resources.extract_options!
+        resources.each do |resource|
+          @associations[resource] = options[:as]
+        end
       end
       
       def has_associations?
