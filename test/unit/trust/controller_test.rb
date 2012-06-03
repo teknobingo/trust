@@ -46,10 +46,10 @@ class Trust::ControllerTest < ActiveSupport::TestCase
     should 'delegate to resource' do
       Controller.properties.expects(:belongs_to)
       Controller.properties.expects(:actions)
-      Controller.properties.expects(:model_name)
+      Controller.properties.expects(:model)
       Controller.belongs_to
       Controller.actions
-      Controller.model_name
+      Controller.model
     end
 
     context 'callbacks' do
@@ -151,10 +151,10 @@ class Trust::ControllerTest < ActiveSupport::TestCase
     should 'delegate to its own resource' do
       DerivedController.properties.expects(:belongs_to)
       DerivedController.properties.expects(:actions)
-      DerivedController.properties.expects(:model_name)
+      DerivedController.properties.expects(:model)
       DerivedController.belongs_to
       DerivedController.actions
-      DerivedController.model_name
+      DerivedController.model
     end
   end
 end

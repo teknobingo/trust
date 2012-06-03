@@ -156,12 +156,12 @@ Account::CreditsController => @account_credit
 
 If it is a nested resource, it will also instantiate the ```parent``` class, using the namedefined in belongs_to to determine the name. E.g. if you have defined belongs_to :client, it will look for the parameter ```:client_id``` and perform a find like ```Client.find(client_id)```. Finding the resource will be done through the association between the two, such as ```client.accounts.find(id)```.
 
-You can override the naming by specifying ```model_name``` like this
+You can override the naming by specifying ```model``` like this
 
 ``` Ruby
 class AccountsController < ApplicationController
   login_required
-  model_name :wackount
+  model :wackount
   trustee
 end
 ```
@@ -171,7 +171,7 @@ If you want to override the name with namespacing then
 ``` Ruby
 class Account::CreditsController < ApplicationController
   login_required
-  model_name :"account/wreckit"
+  model :"account/wreckit"
   trustee
 end
 ```
