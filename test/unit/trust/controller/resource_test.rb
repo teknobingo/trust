@@ -200,16 +200,16 @@ class Trust::Controller::ResourceTest < ActiveSupport::TestCase
   
   context 'Resource' do
     setup do
-      @controller = stub('Controller')
-      @properties = Trust::Controller::Properties.new(@controller)
-      @properties.model_name :child
+      @controller = stub('Controller', :controller_path => :controller)
+      @properties = Trust::Controller::Properties.new(@controller, nil)
+      @properties.model :child
       @properties.belongs_to :parent
       @resource_info = stub('ResourceInfo')
       @parent_info = stub(:object => 6, :name => :parent)
       @resource_info.expects(:relation).with(@parent_info).returns(Child)
       @resource_info.stubs(:name).returns(:child)
-      Trust::Controller::Resource.any_instance.expects(:extract_resource_info).with('child', {}).returns(@resource_info)
-      Trust::Controller::Resource.any_instance.expects(:extract_parent_info).with([:parent], {}, @request).returns(@parent_info)
+      Trust::Controller::Resource.any_instance.expects(:extract_resource_info).with(:child, {}).returns(@resource_info)
+      Trust::Controller::Resource.any_instance.expects(:extract_parent_info).with({:parent => nil}, {}, @request).returns(@parent_info)
     end
     should 'instantiate properly' do      
       @resource = Trust::Controller::Resource.new(@controller, @properties, 'new',{}, @request)      

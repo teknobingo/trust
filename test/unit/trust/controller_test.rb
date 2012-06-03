@@ -126,12 +126,12 @@ class Trust::ControllerTest < ActiveSupport::TestCase
         @controller.expects(:resource).returns(resource).at_least_once
         resource.expects(:instance).returns(:instance)
         resource.expects(:parent).returns(:parent)
-        Trust::Authorization.expects(:authorize!).with(:manage,:instance,:parent)
+        Trust::Authorization.expects(:authorized?).with(:manage,:instance,:parent)
         @controller.can? :manage
         resource.expects(:instance).returns(nil)
         resource.expects(:klass).returns(:klass)
         resource.expects(:parent).returns(:parent)
-        Trust::Authorization.expects(:authorize!).with(:manage,:klass,:parent)
+        Trust::Authorization.expects(:authorized?).with(:manage,:klass,:parent)
         @controller.can? :manage
       end
       should 'be exposed as helper' do

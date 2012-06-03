@@ -27,51 +27,54 @@ module Trust
     class Properties
       delegate :logger, :to => Rails
       attr_reader :controller
-      attr_accessor :model_name
+      attr_accessor :model
       attr_accessor :associations
       attr_accessor :new_actions
       attr_accessor :member_actions
       attr_accessor :collection_actions
       
-      def initialize(controller) # nodoc
+      def initialize(controller, properties) # nodoc
         @controller = controller
-        @associations = {}
-        @new_actions = [:new, :create]
-        @member_actions = [:show, :edit, :update, :destroy]
-        @collection_actions = [:index]
+        @model = controller.controller_path
+        if properties
+          @associations = properties.associations.dup
+          @new_actions = properties.new_actions.dup
+          @member_actions = properties.member_actions.dup
+          @collection_actions = properties.collection_actions.dup
+        else
+          @associations = {}
+          @new_actions = [:new, :create]
+          @member_actions = [:show, :edit, :update, :destroy]
+          @collection_actions = [:index]
+        end
       end
 
       class << self
         def instantiate(controller)
-          if controller.superclass.instance_variable_get(:@properties)
-            object = controller.superclass.properties.clone
-            object.instance_variable_set(:@controller, controller)
-          else
-            object = new(controller)
-          end
-          object
+          new(controller, controller.superclass.instance_variable_get(:@properties))
         end
       end
 
-      # returns or sets the model_name to be used in a controller
+      # returns or sets the model to be used in a controller
       # If not set, the controller_path is used
-      # You can override the model to be accessed in a controller by setting the model_name
+      # You can override the model to be accessed in a controller by setting the model
       #
       # ==== Example
       #
       #    # You have a controller which inherits from a generic controller and it has not the same name. Below
-      #    model_name :account # will assume that the class to be Account and instance variables to be @account/@accounts
+      #    model :account # will assume that the class to be Account and instance variables to be @account/@accounts
       #
       #    # name spaced models
-      #    model_name :"customer/account"
+      #    model :"customer/account"
       #
-      def model_name(name = nil)
-        @model_name ||= (name && name.to_s) || controller.controller_path
+      def model(name = nil)
+        @model = name if name
+        @model
       end
       
       # Returns the class for the model
       def model_class
-        model_name.to_s.classify.constantize
+        model.to_s.classify.constantize
       end
       
       # Specify associated resources (nested resources)
@@ -82,7 +85,7 @@ module Trust
       #
       def belongs_to(*resources)
         raise ArgumentError, "You must specify at least one resource after belongs_to" unless resources
-        logger.debug "#{@model_name || controller.controller_path} belongs_to #{resources.inspect}"
+        logger.debug "#{@model} belongs_to #{resources.inspect}"
         options = resources.extract_options!
         resources.each do |resource|
           @associations[resource] = options[:as]

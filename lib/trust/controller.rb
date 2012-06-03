@@ -39,14 +39,14 @@ module Trust
       # The following methods are delegated to properties. See Trust::Controller::Properties for details
       # * <tt>belongs_to</tt> - define one or more associations to parents
       # * <tt>actions</tt> - acion definitions outside the restful actions
-      # * <tt>model_name</tt> - Redefine the model used in the controller (if it's name does not match the 
+      # * <tt>model</tt> - Redefine the model used in the controller (if it's name does not match the 
       #   controller_path)
       #
       def properties
         @properties ||= Trust::Controller::Properties.instantiate(self)
       end      
       
-      delegate :belongs_to, :actions, :model_name, :to => :properties
+      delegate :belongs_to, :actions, :model, :to => :properties
 
       # Enables authorization in controller
       # +trustee+ accepts +:off+ or a hash of +callback+ options such as +:except+ and +:only+
@@ -139,7 +139,7 @@ module Trust
       # The following methods are delegated to properties. See Trust::Controller::Properties for details
       # * <tt>belongs_to</tt> - define one or more associations to parents
       # * <tt>actions</tt> - acion definitions outside the restful actions
-      # * <tt>model_name</tt> - Redefine the model used in the controller (if it's name does not match the 
+      # * <tt>model</tt> - Redefine the model used in the controller (if it's name does not match the 
       #   controller_path)
       #
       def properties

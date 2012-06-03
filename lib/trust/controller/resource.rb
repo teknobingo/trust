@@ -29,7 +29,7 @@ module Trust
 # Collects information about the current resource and relations. 
 # Handles the loading of the resource and its possible parent, i.e. setting the relevant instance variables
 # It assumes the name of the resource is built on the controllers name, but this can be overridden in your
-# controller by setting the +model_name+
+# controller by setting the +model+
 #
 # Examples:
 #
@@ -48,7 +48,7 @@ module Trust
         @action = action_name.to_sym
         
         @controller, @properties, @params = controller, properties, params
-        @info = extract_resource_info(properties.model_name, params)
+        @info = extract_resource_info(properties.model, params)
         if properties.has_associations?
           @parent_info = extract_parent_info(properties.associations, params, request)
         end
@@ -121,14 +121,16 @@ module Trust
       def load
         self.parent = parent_info.object if parent_info
         if properties.new_actions.include?(action)
-          logger.debug "Setting new: info.params: #{info.params.inspect}"
+#          logger.debug "Trust.load: Setting new: class: #{klass} info.params: #{info.params.inspect}"
           self.instance ||= relation.new(info.params)
           @controller.send(:build, action) if @controller.respond_to?(:build)
         elsif properties.member_actions.include?(action)
-          logger.debug "Finding parent: #{parent.inspect}, relation: #{relation.inspect}"
+#          logger.debug "Trust.load: Finding parent: #{parent.inspect}, relation: #{relation.inspect}"
           self.instance ||= relation.find(params[:id])
           @controller.send(:build, action) if @controller.respond_to?(:build)
-        end # other outcome would be collection actions
+        else # other outcome would be collection actions
+#          logger.debug "Trust.load: Parent is: #{parent.inspect}, collection or unknown action."
+        end 
       end
       
       # Returns the name of the instance for the resource
@@ -160,8 +162,8 @@ module Trust
       
       
     private
-      def extract_resource_info(model_name, params) # nodoc
-        ResourceInfo.new(model_name, params)
+      def extract_resource_info(model, params) # nodoc
+        ResourceInfo.new(model, params)
       end
       
       def extract_parent_info(associations, params, request) #nodoc
@@ -210,18 +212,21 @@ module Trust
       end
    
     protected
-      def var_name(klass)
+      def self.var_name(klass)
         klass.to_s.underscore.tr('/','_').to_sym
+      end
+      def var_name(klass)
+        self.class.var_name(klass)
       end
     end
     
 
     class Resource::ResourceInfo < Resource::Info
 
-      def initialize(model_name, params)
-        @path, params = model_name, params
-        @klass = model_name.to_s.classify.constantize
-        @name = model_name.to_s.singularize.underscore.gsub('/','_').to_sym
+      def initialize(model, params)
+        @path, params = model, params
+        @klass = model.to_s.classify.constantize
+        @name = model.to_s.singularize.underscore.gsub('/','_').to_sym
         ptr = @klass.descendants.detect do |c|
           params.key? var_name(c)
         end || @klass
