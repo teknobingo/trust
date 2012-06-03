@@ -23,11 +23,23 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 class Trust::ResourceHelper
-  attr_accessor :instance, :parent, :parent_name, :instances
-  attr_reader :properties, :params, :action, :instance_params
-  attr_reader :info, :parent_info, :relation
+  attr_accessor :instance, :parent, :instances
+  attr_accessor :properties, :params, :action, :instance_params
+  attr_accessor :info, :parent_info, :relation
   class << self
     attr_accessor :properties
+  end
+  
+  def klass
+    instance.class
+  end
+  
+  def instance_name
+    Trust::Controller::Resource::Info.var_name(klass)
+  end
+  
+  def parent_name
+    Trust::Controller::Resource::Info.var_name(parent.class)
   end
   
   def instantiated

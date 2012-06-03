@@ -39,7 +39,7 @@ module Trust
         end
         # Identify which class to instanciate and then check authorization
         auth = authorizing_class(klass)
-        Rails.logger.debug "authorizing class for #{klass.name} is #{auth.name}"
+        # Rails.logger.debug "Trust: Authorizing class for #{klass.name} is #{auth.name}"
         auth.new(user, action.to_sym, klass, object, parent).authorized?
       end
       
