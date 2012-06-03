@@ -31,16 +31,13 @@ require "trust/version"
 Gem::Specification.new do |s|
   s.name        = "trust"
   s.version     = Trust::VERSION
-  s.authors     = ["Patrick Hanevold"]
-  s.email       = ["patrick.hanevold@gmail.com"]
+  s.authors     = ["Patrick Hanevold", "Knut I Stenmark"]
+  s.email       = ["patrick.hanevold@gmail.com", "knut.stenmark@gmail.com"]
   s.homepage    = "https://github.com/teknobingo/trust"
   s.summary     = "Trust is a framework for authorization control"
   s.description = <<THE_END
-Well, we used DeclarativeAuthorization[http://github.com/stffn/declarative_authorization] for a while, but got stuck when it comes to name-spaces and inheritance.
-So, we investigated in the possibilities of using CanCan[http://github.com/ryanb/cancan] and CanTango[http://github.com/kristianmandrup/cantango],
-and found that CanCan could be slow, because all authorizations has to be loaded on every request.
-CanTango has tackled this problem by implementing cashing, but the framework is still evolving and seems fairly complex.
-At the same time, CanTango is role focused and not resource focused.
+Trust is a resource oriented framework for authorization control. It has a loose coupling from the models, and features a native
+Ruby implementation language. Support for inheritance and namespaced models as well as nested routes. Even permissions scheme supports inheritance.
 THE_END
 
   s.files = Dir["{app,config,db,lib}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.rdoc"]

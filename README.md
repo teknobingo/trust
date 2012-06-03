@@ -1,20 +1,21 @@
 # Trust
 
-### Trust is a framework for authorization control - for Ruby On Rails.
+### Trust is a no-nonsense framework for authorization control - for Ruby On Rails.
 
 - Why yet another authorization framework you may ask?
 
-Well, we used [DeclarativeAuthorization](http://github.com/stffn/declarative_authorization) for a while, but got stuck when it comes to name-spaces and inheritance. So, we investigated in the possibilities of using [CanCan](http://github.com/ryanb/cancan) and [CanTango](http://github.com/kristianmandrup/cantango), and found that CanCan could be slow, because all authorizations has to be loaded on every request. CanTango has tackled this problem by implementing caching, but the framework is still evolving and seems fairly complex. At the same time, CanTango is role focused and not resource focused.
+Well, we used [DeclarativeAuthorization](http://github.com/stffn/declarative_authorization) for a while, but got stuck when it comes to name-spaces and inheritance. So, we investigated in the possibilities of using [CanCan](http://github.com/ryanb/cancan) and [CanTango](http://github.com/kristianmandrup/cantango), and found that CanCan could be slow, because all permissions has to be loaded on every request. CanTango has tackled this problem by implementing caching, but the framework is still evolving and seems fairly complex. At the same time, CanTango is role focused and not resource focused.
 
 ### What will you benefit from when using Trust?
 
 * Resource focused permissions, not role focused
 * Complete support for inheritance in controllers
 * Complete support for namespaces, both controllers and models
+* Complete support for nested resources
 * Complete support for shortened associations (e.g. if you have models in name spaces that relates to other models in the name space)
 * Fast permission loading, where no cashing is needed. All permissions are declared on class level, so once loaded, they stay in memory.
-* Support for inheritance in the authorization model
-* Natural code evaluation in the authorizations declaration, i.e. you understand completely what is going on, because the implementation is done the way you implement condifitions in rails for validations and alike.
+* Support for inheritance in the permissions model
+* Natural code evaluation in the permission declarations, i.e. you understand completely what is going on, because the implementation is done the way you implement condifitions in rails for validations and alike.
 * Automatic loading of instances and parents in controller
 
 ### What is not supported in Trust
@@ -32,7 +33,7 @@ Install the gem
 
     gem install trust
 
-### Define authorizations
+### Define permissions
 
 Create the permissions file in your model directory. Example
 
@@ -55,7 +56,7 @@ module Permissions
     end
 
     def associated_with_client?
-      parent && parent.is_a?(Client) parent.operators.find(user.id)
+      parent && parent.is_a?(Client) && parent.operators.find(user.id)
     end
   end
 end
@@ -72,7 +73,7 @@ The following attributes will be accessible in a Permissions class:
 Keep in mind that the permission object will be instanciated to do authorization, and not the class.
 You can extend the Trust::Permissions with more functionality if needed.
 
-You can also create aliases for actions. We have defined a predefined set of aliases. See [Trust::Permissions.action\_aliases](./lib/trust/permissions.rb).
+You can also create aliases for actions. We have defined a predefined set of aliases. See Trust::Permissions.action_aliases.
 Processing of aliases are done in such way that permissions per action is expanded when the permissions are loaded, so thif you define :update when declaring the permissions, there will be one permission for :update and one for :edit
 
 
@@ -95,7 +96,7 @@ before_filter :load_resource
 before_filter :access_control
 ```
 
-Trust assumes that ```current\_user``` is accessible. The user object must respond to the method ```role\_symbols``` which should return an array of one or more roles for the user.
+Trust assumes that ```current_user``` is accessible. The user object must respond to the method ```role_symbols``` which should return an array of one or more roles for the user.
 
 Handling access denied situations in your controller. Implement something like the following in your ApplicationController:
 
@@ -110,7 +111,7 @@ end
 
 ### Define associations in your controller
 
-For nested resources you can easily define the associations using ```belongs\_to``` like this:
+For nested resources you can easily define the associations using ```belongs_to``` like this:
 
 ``` Ruby
 class AccountsController < ApplicationController
@@ -146,16 +147,16 @@ Customer.permits? :create, @client  # does the current user have permission to c
 
 ## Instance variables
 
-The filter ```load\_resource``` will automatically load the instance for the resource in the controller. It will by default use the controller\_path to determine the name of the instance variable. Here are a couple of examples:
+The filter ```load_resource``` will automatically load the instance for the resource in the controller. It will by default use the controller_path to determine the name of the instance variable. Here are a couple of examples:
 
 ``` Ruby
 UsersController => @user
 Account::CreditsController => @account_credit
 ```
 
-If it is a nested resource, it will also instantiate the ```parent``` class, using the namedefined in belongs\_to to determine the name. E.g. if you have defined belongs_to :client, it will look for the parameter ```:client\_id``` and perform a find like ```Client.find(client\_id)```. Finding the resource will be done through the association between the two, such as ```client.accounts.find(id)```.
+If it is a nested resource, it will also instantiate the ```parent``` class, using the namedefined in belongs_to to determine the name. E.g. if you have defined belongs_to :client, it will look for the parameter ```:client_id``` and perform a find like ```Client.find(client_id)```. Finding the resource will be done through the association between the two, such as ```client.accounts.find(id)```.
 
-You can override the naming by specifying ```model\_name``` like this
+You can override the naming by specifying ```model_name``` like this
 
 ``` Ruby
 class AccountsController < ApplicationController
@@ -232,7 +233,7 @@ end
 
 ### Overriding set_user
 
-If you prefer to use some other user reference than current_user you can override the method ```set\_user``` like this in your controller:
+If you prefer to use some other user reference than current_user you can override the method ```set_user``` like this in your controller:
 
 ``` Ruby
 def set_user
