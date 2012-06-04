@@ -208,7 +208,7 @@ class Trust::Controller::ResourceTest < ActiveSupport::TestCase
       @parent_info = stub(:object => 6, :name => :parent)
       @resource_info.expects(:relation).with(@parent_info).returns(Child)
       @resource_info.stubs(:name).returns(:child)
-      Trust::Controller::Resource.any_instance.expects(:extract_resource_info).with(:child, {}).returns(@resource_info)
+      Trust::Controller::Resource.any_instance.expects(:extract_resource_info).with('child', {}).returns(@resource_info)
       Trust::Controller::Resource.any_instance.expects(:extract_parent_info).with({:parent => nil}, {}, @request).returns(@parent_info)
     end
     should 'instantiate properly' do      

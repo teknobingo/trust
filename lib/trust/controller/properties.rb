@@ -70,7 +70,7 @@ module Trust
       #    model :"customer/account"
       #
       def model(name = nil)
-        @model = name if name
+        @model = name.to_s if name
         @model
       end
       
