@@ -50,6 +50,8 @@ module Trust
       end
 
       class << self
+        # returns a controller properties object
+        # ensures controller properties are instantiated in a correct manner and that inheritance is supported
         def instantiate(controller)
           new(controller, controller.superclass.instance_variable_get(:@properties))
         end

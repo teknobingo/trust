@@ -24,6 +24,7 @@
 
 module Trust
   class Permissions
+    # = Trust::Permissions
     # Permissions should be specified in a separate file in you app/model directory. The file could look like this:
     #
     #   module Permissions
@@ -81,8 +82,8 @@ module Trust
     # * <tt>user</tt> - the user currently logged in
     # * <tt>action</tt> - the action request from the controller such as :edit, or the action tested from helper or 
     #   from the object itself when using <tt>ActiveRecord::can?</tt> is being used.
-    # * <tt>subject</tt> - the object that is being tested for permissions. This may be nil if there is no object,
-    #   such as for +:create+ and +:new+ action.
+    # * <tt>subject</tt> - the object that is being tested for permissions. This may be a an existing object, a new object
+    #   (such as for +:create+ and +:new+ action), or nil if no object has been instantiated.
     # * <tt>parent</tt> - the parent object if in a nested route, specified by +belongs_to+ in the controller.
     # * <tt>klass</tt> - the class of involed in the request. It can be a base class or the real class, depending on
     #   your controller design.
@@ -101,7 +102,7 @@ module Trust
     #     end
     #   end
     #
-    # In the above example closed is tes´ting on the subject to see if it is closed. The permission is referring to 
+    # In the above example closed is testing on the subject to see if it is closed. The permission is referring to 
     # this method when evaluated.
     # Keep in mind that you must refer to the +subject+, as you do not access the inctance of the object directly.
     #
@@ -120,10 +121,21 @@ module Trust
       }
     @@can_expressions = 0
   
+    # initializes the permission object
+    # calling the +authorized?+ method on the instance later will test for the authorization.
+    # Parameters:
+    # <tt>user</tt> - user object, must respond to role_symbols
+    # <tt>action</tt> - action, such as :create, :show, etc. Should not be an alias
+    # <tt>klass</tt> - the class of the subject. 
+    # <tt>subject</tt> - the subject tested for authorization
+    # <tt>parent</tt> - the parent object, normally declared through belongs_to
+    #
+    # See Trust::Authorization for more details
     def initialize(user, action, klass, subject, parent)
       @user, @action, @klass, @subject, @parent = user, action, klass, subject, parent
     end
   
+    # returns true if the user is authorized to perform the action
     def authorized?
       authorized = nil
       user && user.role_symbols.each do |role|
@@ -138,7 +150,7 @@ module Trust
     end
   
   protected
-    def eval_expr(options)
+    def eval_expr(options) #:nodoc:
       options.collect do |oper, expr|
         res = case expr
         when Symbol then send(expr)
@@ -240,7 +252,7 @@ module Trust
       end
   
     private
-      def expand_aliases(actions)
+      def expand_aliases(actions) #:nodoc:
         expanded = []
         Array.wrap(actions).each do |action|
           if self.action_aliases[action]
