@@ -34,13 +34,13 @@ Gem::Specification.new do |s|
   s.authors     = ["Patrick Hanevold", "Knut I Stenmark"]
   s.email       = ["patrick.hanevold@gmail.com", "knut.stenmark@gmail.com"]
   s.homepage    = "https://github.com/teknobingo/trust"
-  s.summary     = "Trust is a framework for authorization control"
+  s.summary     = "Trust is a framework for authorization control in RubyOnRails"
   s.description = <<THE_END
 Trust is a resource oriented framework for authorization control. It has a loose coupling from the models, and features a native
 Ruby implementation language. Support for inheritance and namespaced models as well as nested routes. Even permissions scheme supports inheritance.
 THE_END
 
-  s.files = Dir["{app,config,db,lib}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.rdoc"]
+  s.files = Dir["{app,config,db,lib}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.md"]
   s.test_files = Dir["test/**/*"]
 
   s.add_dependency "rails", ">= 3.0.1"
