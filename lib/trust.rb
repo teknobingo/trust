@@ -34,6 +34,15 @@ require 'trust/controller'
 class ActionController::Base
   include Trust::Controller
 end
-class ActiveRecord::Base
-  include Trust::ActiveRecord
+if defined?(ActiveRecord)
+  class ActiveRecord::Base
+    include Trust::ActiveRecord
+  end
+end
+if defined?(Mongoid)
+  module Mongoid
+    module Document
+      include Trust::ActiveRecord
+    end
+  end
 end
