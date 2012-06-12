@@ -24,6 +24,7 @@
 
 Dummy::Application.routes.draw do
   resources :clients
+  resources :mongo_clients
 
   resources :users
     
@@ -33,6 +34,10 @@ Dummy::Application.routes.draw do
     namespace :accounts do
       resources :credit, :shallow => true
     end
+  end
+
+  resources :mongo_client do
+    resources :mongo_accounts
   end
 
 end

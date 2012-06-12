@@ -42,6 +42,9 @@ module Permissions
     role :accountant, can(:manage)
     role all, can(:read)
   end
+
+  class MongoClient < Client
+  end
   
   class Account < Default
     role :accountant do
@@ -54,6 +57,20 @@ module Permissions
     
     def associated_with_client?
       parent && parent.is_a?(::Client) && parent.accountant == user.name
+    end
+  end
+
+  class MongoAccount < Default
+    role :accountant do
+      can :create, :if => :associated_with_client?
+      can :update, :if => :creator?
+    end
+    role :department_manager, :accountant do
+      can :create, :if => lambda { parent && parent.accountant == :superspecial }
+    end
+    
+    def associated_with_client?
+      parent && parent.is_a?(::MongoClient) && parent.accountant == user.name
     end
   end
 

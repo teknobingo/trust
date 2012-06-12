@@ -17,6 +17,7 @@ Well, we used [DeclarativeAuthorization](http://github.com/stffn/declarative_aut
 * Support for inheritance in the permissions model
 * Natural code evaluation in the permission declarations, i.e. you understand completely what is going on, because the implementation is done the way you implement condifitions in rails for validations and alike.
 * Automatic loading of instances and parents in controller
+* Mongoid support
 
 ### What is not supported in Trust
 
@@ -24,7 +25,6 @@ Well, we used [DeclarativeAuthorization](http://github.com/stffn/declarative_aut
 
 ### Currently not supported, but may be in the future
 
-* Support for devise. However you may easily implement this by overriding one method in your controller.
 * cannot and cannot? expressions.
 
 # Install and Setup
@@ -241,4 +241,11 @@ def set_user
 end
 ```
 
+## Devise integration
 
+If you have your ```ApplicationController``` as the trustee you will need to reverse this in devise that inherits the ```ApplicationController```.
+Add this to your devise initializer:
+
+``` Ruby
+DeviseController.trustee :off
+```
