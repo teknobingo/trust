@@ -142,6 +142,118 @@ class PermissionsTest < ActiveSupport::TestCase
       assert !account.permits?(:update)
     end
   end
+  context 'MongoClient' do
+    should 'be managed by system admins' do
+      login_as(:system_admin)
+      assert MongoClient.permits?(:create)
+      assert MongoClient.new.permits?(:create)
+    end
+    should 'be audited by system admins' do
+      login_as(:system_admin)
+      assert MongoClient.permits?(:audit)
+      assert MongoClient.new.permits?(:audit)
+    end
+    should 'be managed by accauntants' do
+      login_as(:accountant)
+      assert MongoClient.permits?(:create)
+      assert MongoClient.new.permits?(:create)
+    end
+    should 'not be managed by guests' do
+      login_as(:guest)
+      assert !MongoClient.permits?(:create)
+      assert !MongoClient.new.permits?(:create)
+    end
+    should 'be read by all roles' do
+      Permissions::Default.all do |role|
+        login_as(role)
+        assert MongoClient.permits?(:read)
+        assert MongoClient.new.permits?(:read)
+      end
+    end
+    should 'not be read by other roles' do
+      login_as(:blind_man)
+      assert !MongoClient.permits?(:read)
+      assert !MongoClient.new.permits?(:read)
+    end
+  end
+  context 'MongoAccount' do
+    should 'be managed by system admins' do
+      login_as(:system_admin)
+      assert MongoAccount.permits?(:create)
+      assert MongoAccount.new.permits?(:create)
+    end
+    should 'be audited by system admins' do
+      login_as(:system_admin)
+      assert MongoAccount.permits?(:audit)
+      assert MongoAccount.new.permits?(:audit)
+    end
+    should 'not be managed by accauntants' do
+      login_as(:accountant)
+      assert !MongoAccount.permits?(:destroy)
+      assert !MongoAccount.new.permits?(:destroy)
+      assert !MongoAccount.permits?(:create)
+      assert !MongoAccount.new.permits?(:create)
+    end
+    should 'be created by accauntants associated to clients' do
+      login_as(:accountant)
+      parent = MongoClient.new
+      parent.expects(:accountant).returns(@user.name).twice
+      assert MongoAccount.permits?(:create,parent)
+      assert MongoAccount.new.permits?(:create,parent)
+    end
+    should 'not be created by accauntants unless associated to clients' do
+      login_as(:accountant)
+      parent = MongoClient.new
+      parent.expects(:accountant).returns(stub('bogus', :accountant => :bogus)).times(4)
+      assert !MongoAccount.permits?(:create,stub('bogus', :accountant => :bogus))
+      assert !MongoAccount.new.permits?(:create,stub('bogus', :accountant => :bogus))
+      assert !MongoAccount.permits?(:create,parent)
+      assert !MongoAccount.new.permits?(:create,parent)
+    end
+    should 'be created by department managers if parent is superspecial' do
+      login_as(:department_manager)
+      parent = MongoClient.new
+      parent.expects(:accountant).returns(:superspecial).twice
+      assert MongoAccount.permits?(:create,parent)
+      assert MongoAccount.new.permits?(:create,parent)
+    end
+    should 'be created by accauntants if parent is superspecial' do
+      login_as(:accountant)
+      parent = MongoClient.new
+      parent.expects(:accountant).returns(:superspecial).times(4)
+      assert MongoAccount.permits?(:create,parent)
+      assert MongoAccount.new.permits?(:create,parent)
+    end
+    should 'not be created by department managers unless parent is superspecial' do
+      login_as(:department_manager)
+      parent = MongoClient.new
+      parent.expects(:accountant).returns(:not_so_superspecial).twice
+      assert !MongoAccount.permits?(:create,parent)
+      assert !MongoAccount.new.permits?(:create,parent)
+    end
+    should 'not be created by accauntants unless parent is superspecial' do
+      login_as(:accountant)
+      parent = MongoClient.new
+      parent.expects(:accountant).returns(:not_so_superspecial).times(4)
+      assert !MongoAccount.permits?(:create,parent)
+      assert !MongoAccount.new.permits?(:create,parent)
+    end
+    should 'not be created by guests if parent' do
+      login_as(:guest)
+      assert !MongoAccount.permits?(:create)
+      assert !MongoAccount.new.permits?(:create)
+    end
+    should 'be updateable by creator' do
+      login_as(:accountant)
+      assert MongoAccount.create.permits?(:update)
+    end
+    should 'be not be updateable by others' do
+      login_as(:guest)
+      account = MongoAccount.create
+      login_as(:accountant)
+      assert !account.permits?(:update)
+    end
+  end
   context 'Account::Credit' do
     should 'be managed by system admins' do
       login_as(:system_admin)

@@ -1,3 +1,4 @@
+<%
 # Copyright (c) 2012 Bingo Entreprenøren AS
 # Copyright (c) 2012 Teknobingo Scandinavia AS
 # Copyright (c) 2012 Knut I. Stenmark
@@ -21,30 +22,25 @@
 # LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+%>
+<%= form_for(@mongo_client) do |f| %>
+  <% if @mongo_client.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@mongo_client.errors.count, "error") %> prohibited this client from being saved:</h2>
 
-require 'trust/exceptions'
-require 'trust/inheritable_attribute'
-module Trust
-  autoload :Permissions,        'trust/permissions'
-  autoload :Controller,         'trust/controller'
-  autoload :Authorization,      'trust/authorization'
-  autoload :ActiveRecord,       'trust/active_record'
-end
-require 'trust/controller'
-class ActionController::Base
-  include Trust::Controller
-end
-if defined?(ActiveRecord)
-  class ActiveRecord::Base
-    include Trust::ActiveRecord
-  end
-end
-# always, as it may not exists yet
-module Mongoid
-  module Document
-    include Trust::ActiveRecord
-    def Document.included(base)
-      base.send(:extend,Trust::ActiveRecord::ClassMethods)
-    end
-  end
-end
+      <ul>
+      <% @mongo_client.errors.full_messages.each do |msg| %>
+        <li><%= msg %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :name %><br />
+    <%= f.text_field :name %>
+  </div>
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>
