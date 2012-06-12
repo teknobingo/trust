@@ -37,8 +37,6 @@ class ClientsController < ApplicationController
   # GET /clients/1
   # GET /clients/1.json
   def show
-    @client = Client.find(params[:id])
-
     respond_to do |format|
       format.html # show.html.erb
       format.json { render json: @client }
@@ -48,24 +46,15 @@ class ClientsController < ApplicationController
   # GET /clients/new
   # GET /clients/new.json
   def new
-    @client = Client.new
-
     respond_to do |format|
       format.html # new.html.erb
       format.json { render json: @client }
     end
   end
 
-  # GET /clients/1/edit
-  def edit
-    @client = Client.find(params[:id])
-  end
-
   # POST /clients
   # POST /clients.json
   def create
-    @client = Client.new(params[:client])
-
     respond_to do |format|
       if @client.save
         format.html { redirect_to @client, notice: 'Client was successfully created.' }
@@ -80,8 +69,6 @@ class ClientsController < ApplicationController
   # PUT /clients/1
   # PUT /clients/1.json
   def update
-    @client = Client.find(params[:id])
-
     respond_to do |format|
       if @client.update_attributes(params[:client])
         format.html { redirect_to @client, notice: 'Client was successfully updated.' }

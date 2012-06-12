@@ -37,8 +37,6 @@ class MongoClientsController < ApplicationController
   # GET /clients/1
   # GET /clients/1.json
   def show
-    @mongo_client = MongoClient.find(params[:id])
-
     respond_to do |format|
       format.html # show.html.erb
       format.json { render json: @mongo_client }
@@ -48,24 +46,15 @@ class MongoClientsController < ApplicationController
   # GET /clients/new
   # GET /clients/new.json
   def new
-    @mongo_client = MongoClient.new
-
     respond_to do |format|
       format.html # new.html.erb
       format.json { render json: @mongo_client }
     end
   end
 
-  # GET /clients/1/edit
-  def edit
-    @mongo_client = MongoClient.find(params[:id])
-  end
-
   # POST /clients
   # POST /clients.json
   def create
-    @mongo_client = MongoClient.new(params[:mongo_client])
-
     respond_to do |format|
       if @mongo_client.save
         format.html { redirect_to @mongo_client, notice: 'MongoClient was successfully created.' }
@@ -80,8 +69,6 @@ class MongoClientsController < ApplicationController
   # PUT /clients/1
   # PUT /clients/1.json
   def update
-    @mongo_client = MongoClient.find(params[:id])
-
     respond_to do |format|
       if @mongo_client.update_attributes(params[:mongo_client])
         format.html { redirect_to @mongo_client, notice: 'Client was successfully updated.' }
