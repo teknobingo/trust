@@ -22,15 +22,15 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-class ClientsController < ApplicationController
+class MongoClientsController < ApplicationController
   # GET /clients
   # GET /clients.json
   def index
-    @clients = Client.all
+    @mongo_clients = MongoClient.all
 
     respond_to do |format|
       format.html # index.html.erb
-      format.json { render json: @clients }
+      format.json { render json: @mongo_clients }
     end
   end
 
@@ -39,7 +39,7 @@ class ClientsController < ApplicationController
   def show
     respond_to do |format|
       format.html # show.html.erb
-      format.json { render json: @client }
+      format.json { render json: @mongo_client }
     end
   end
 
@@ -48,7 +48,7 @@ class ClientsController < ApplicationController
   def new
     respond_to do |format|
       format.html # new.html.erb
-      format.json { render json: @client }
+      format.json { render json: @mongo_client }
     end
   end
 
@@ -56,12 +56,12 @@ class ClientsController < ApplicationController
   # POST /clients.json
   def create
     respond_to do |format|
-      if @client.save
-        format.html { redirect_to @client, notice: 'Client was successfully created.' }
-        format.json { render json: @client, status: :created, location: @client }
+      if @mongo_client.save
+        format.html { redirect_to @mongo_client, notice: 'MongoClient was successfully created.' }
+        format.json { render json: @mongo_client, status: :created, location: @client }
       else
         format.html { render action: "new" }
-        format.json { render json: @client.errors, status: :unprocessable_entity }
+        format.json { render json: @mongo_client.errors, status: :unprocessable_entity }
       end
     end
   end
@@ -70,12 +70,12 @@ class ClientsController < ApplicationController
   # PUT /clients/1.json
   def update
     respond_to do |format|
-      if @client.update_attributes(params[:client])
-        format.html { redirect_to @client, notice: 'Client was successfully updated.' }
+      if @mongo_client.update_attributes(params[:mongo_client])
+        format.html { redirect_to @mongo_client, notice: 'Client was successfully updated.' }
         format.json { head :no_content }
       else
         format.html { render action: "edit" }
-        format.json { render json: @client.errors, status: :unprocessable_entity }
+        format.json { render json: @mongo_client.errors, status: :unprocessable_entity }
       end
     end
   end
@@ -83,11 +83,11 @@ class ClientsController < ApplicationController
   # DELETE /clients/1
   # DELETE /clients/1.json
   def destroy
-    @client = Client.find(params[:id])
-    @client.destroy
+    @mongo_client = MongoClient.find(params[:id])
+    @mongo_client.destroy
 
     respond_to do |format|
-      format.html { redirect_to clients_url }
+      format.html { redirect_to mongo_clients_url }
       format.json { head :no_content }
     end
   end

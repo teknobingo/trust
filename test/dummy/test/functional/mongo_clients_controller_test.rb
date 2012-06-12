@@ -22,29 +22,53 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require 'trust/exceptions'
-require 'trust/inheritable_attribute'
-module Trust
-  autoload :Permissions,        'trust/permissions'
-  autoload :Controller,         'trust/controller'
-  autoload :Authorization,      'trust/authorization'
-  autoload :ActiveRecord,       'trust/active_record'
-end
-require 'trust/controller'
-class ActionController::Base
-  include Trust::Controller
-end
-if defined?(ActiveRecord)
-  class ActiveRecord::Base
-    include Trust::ActiveRecord
+require 'test_helper'
+
+class MongoClientsControllerTest < ActionController::TestCase
+  setup do
+    @client = MongoClient.create #clients(:one)
+    login_as(:system_admin)
   end
-end
-# always, as it may not exists yet
-module Mongoid
-  module Document
-    include Trust::ActiveRecord
-    def Document.included(base)
-      base.send(:extend,Trust::ActiveRecord::ClassMethods)
+
+  test "should get index" do
+    get :index
+    assert_response :success
+    assert_not_nil assigns(:mongo_clients)
+  end
+
+  test "should get new" do
+    get :new
+    assert_response :success
+  end
+
+  test "should create client" do
+    assert_difference('MongoClient.count') do
+      post :create, mongo_client: { name: @client.name }
     end
+
+    assert_redirected_to mongo_client_path(assigns(:mongo_client))
+  end
+
+  test "should show client" do
+    get :show, id: @client
+    assert_response :success
+  end
+
+  test "should get edit" do
+    get :edit, id: @client
+    assert_response :success
+  end
+
+  test "should update client" do
+    put :update, id: @client, mongo_client: { name: @client.name }
+    assert_redirected_to mongo_client_path(assigns(:mongo_client))
+  end
+
+  test "should destroy client" do
+    assert_difference('MongoClient.count', -1) do
+      delete :destroy, id: @client
+    end
+
+    assert_redirected_to mongo_clients_path
   end
 end

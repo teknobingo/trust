@@ -22,72 +22,78 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-class ClientsController < ApplicationController
-  # GET /clients
-  # GET /clients.json
+class MongoAccountsController < ApplicationController
+
+  belongs_to :mongo_client
+
+  # GET /clients/1/accounts
+  # GET /clients/1/accounts.json
   def index
-    @clients = Client.all
+    @mongo_accounts = resource.relation.all
 
     respond_to do |format|
       format.html # index.html.erb
-      format.json { render json: @clients }
+      format.json { render json: @mongo_accounts }
     end
   end
 
-  # GET /clients/1
-  # GET /clients/1.json
+  # GET /clients/1/accounts/1
+  # GET /clients/1/accounts/1.json
   def show
     respond_to do |format|
       format.html # show.html.erb
-      format.json { render json: @client }
+      format.json { render json: @mongo_account }
     end
   end
 
-  # GET /clients/new
-  # GET /clients/new.json
+  # GET /clients/1/accounts/new
+  # GET /clients/1/accounts/new.json
   def new
     respond_to do |format|
       format.html # new.html.erb
-      format.json { render json: @client }
+      format.json { render json: @mongo_account }
     end
   end
 
-  # POST /clients
-  # POST /clients.json
+  # GET /clients/1/accounts/1/edit
+  def edit
+  end
+
+  # POST /clients/1/accounts
+  # POST /clients/1/accounts.json
   def create
     respond_to do |format|
-      if @client.save
-        format.html { redirect_to @client, notice: 'Client was successfully created.' }
-        format.json { render json: @client, status: :created, location: @client }
+      if @mongo_account.save
+        format.html { redirect_to mongo_client_mongo_account_path(@mongo_account.mongo_client,@mongo_account), notice: 'Account was successfully created.' }
+        format.json { render json: @mongo_account, status: :created, location: @mongo_account }
       else
         format.html { render action: "new" }
-        format.json { render json: @client.errors, status: :unprocessable_entity }
+        format.json { render json: @mongo_account.errors, status: :unprocessable_entity }
       end
     end
   end
 
-  # PUT /clients/1
-  # PUT /clients/1.json
+  # PUT /clients/1/accounts/1
+  # PUT /clients/1/accounts/1.json
   def update
     respond_to do |format|
-      if @client.update_attributes(params[:client])
-        format.html { redirect_to @client, notice: 'Client was successfully updated.' }
+      if @mongo_account.update_attributes(params[:mongo_account])
+        format.html { redirect_to mongo_client_mongo_account_path(@mongo_account), notice: 'Account was successfully updated.' }
         format.json { head :no_content }
       else
         format.html { render action: "edit" }
-        format.json { render json: @client.errors, status: :unprocessable_entity }
+        format.json { render json: @mongo_account.errors, status: :unprocessable_entity }
       end
     end
   end
 
-  # DELETE /clients/1
-  # DELETE /clients/1.json
+  # DELETE /clients/1/accounts/1
+  # DELETE /clients/1/accounts/1.json
   def destroy
-    @client = Client.find(params[:id])
-    @client.destroy
+    @mongo_account.destroy
 
     respond_to do |format|
-      format.html { redirect_to clients_url }
+      format.html { redirect_to mongo_client_mongo_accounts_url }
       format.json { head :no_content }
     end
   end

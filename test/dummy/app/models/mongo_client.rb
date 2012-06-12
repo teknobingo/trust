@@ -22,29 +22,20 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require 'trust/exceptions'
-require 'trust/inheritable_attribute'
-module Trust
-  autoload :Permissions,        'trust/permissions'
-  autoload :Controller,         'trust/controller'
-  autoload :Authorization,      'trust/authorization'
-  autoload :ActiveRecord,       'trust/active_record'
-end
-require 'trust/controller'
-class ActionController::Base
-  include Trust::Controller
-end
-if defined?(ActiveRecord)
-  class ActiveRecord::Base
-    include Trust::ActiveRecord
+class MongoClient
+  include Mongoid::Document
+
+  has_many :mongo_accounts
+  field :name,          type: String
+  field :accountant_id, type: Integer
+
+  before_create :set_accountant
+
+  def set_accountant
+    self.accountant_id = User.current.id
   end
-end
-# always, as it may not exists yet
-module Mongoid
-  module Document
-    include Trust::ActiveRecord
-    def Document.included(base)
-      base.send(:extend,Trust::ActiveRecord::ClassMethods)
-    end
+
+  def accountant
+    User.find_by_id(self.accountant_id)
   end
 end

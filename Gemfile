@@ -15,6 +15,9 @@ gem "jquery-rails"
 
 gem 'shoulda'
 gem 'mocha'
+gem 'mongoid', "~> 2.3"
+gem "bson_ext", "~> 1.4"              # mongoid
+gem 'bson'                            # mongoid
 
 # To use debugger
 # gem 'ruby-debug19', :require => 'ruby-debug'
