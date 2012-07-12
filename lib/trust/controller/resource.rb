@@ -126,7 +126,7 @@ module Trust
           @controller.send(:build, action) if @controller.respond_to?(:build)
         elsif properties.member_actions.include?(action)
 #          logger.debug "Trust.load: Finding parent: #{parent.inspect}, relation: #{relation.inspect}"
-          self.instance ||= relation.find(params[:id])
+          self.instance ||= relation.find(params[:id] || params["#{relation.name.underscore}_id".to_sym])
           @controller.send(:build, action) if @controller.respond_to?(:build)
         else # other outcome would be collection actions
 #          logger.debug "Trust.load: Parent is: #{parent.inspect}, collection or unknown action."

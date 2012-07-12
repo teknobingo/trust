@@ -208,43 +208,83 @@ class Trust::Controller::ResourceTest < ActiveSupport::TestCase
       @parent_info = stub(:object => 6, :name => :parent)
       @resource_info.expects(:relation).with(@parent_info).returns(Child)
       @resource_info.stubs(:name).returns(:child)
-      Trust::Controller::Resource.any_instance.expects(:extract_resource_info).with('child', {}).returns(@resource_info)
-      Trust::Controller::Resource.any_instance.expects(:extract_parent_info).with({:parent => nil}, {}, @request).returns(@parent_info)
     end
-    should 'instantiate properly' do      
-      @resource = Trust::Controller::Resource.new(@controller, @properties, 'new',{}, @request)      
+    context 'Plain' do
+      setup do
+        Trust::Controller::Resource.any_instance.expects(:extract_resource_info).with('child', {}).returns(@resource_info)
+        Trust::Controller::Resource.any_instance.expects(:extract_parent_info).with({:parent => nil}, {}, @request).returns(@parent_info)
+      end
+      should 'instantiate properly' do      
+        @resource = Trust::Controller::Resource.new(@controller, @properties, 'new',{}, @request)      
+      end
+      should 'discover variable names' do
+        @resource = Trust::Controller::Resource.new(@controller, @properties, 'new',{}, @request)
+        @resource_info.expects(:plural_name).returns(:children)
+        assert_equal :child, @resource.send(:instance_name)
+        assert_equal :parent, @resource.send(:parent_name)
+        assert_equal :children, @resource.send(:plural_instance_name)
+      end
+      should 'have access to instances' do
+        @resource = Trust::Controller::Resource.new(@controller, @properties, 'new',{}, @request)
+        @resource.expects(:plural_instance_name).twice.returns(:children)
+        @resource.instances = [1]
+        assert_equal [1], @resource.instances
+        assert_equal [1], @controller.instance_variable_get(:@children)
+      end
+      should 'have access to instantiated' do
+        @resource = Trust::Controller::Resource.new(@controller, @properties, 'new',{}, @request)
+        @resource.expects(:instances).returns(1)
+        assert_equal 1, @resource.instantiated
+        @resource.expects(:instances).returns(nil)
+        @resource.expects(:instance).returns(2)
+        assert_equal 2, @resource.instantiated
+      end
+      should 'load as expected' do
+        @resource = Trust::Controller::Resource.new(@controller, @properties, 'new',{}, @request)      
+        @resource_info.stubs(:params).returns({})
+        @controller.expects(:respond_to?).with(:build).returns(false)
+        @resource.load
+        assert_equal 6, @controller.instance_variable_get(:@parent)
+        assert_equal 6, @resource.parent
+        assert @controller.instance_variable_get(:@child).is_a?(Child)
+        assert @resource.instance.is_a?(Child)
+      end
     end
-    should 'discover variable names' do
-      @resource = Trust::Controller::Resource.new(@controller, @properties, 'new',{}, @request)
-      @resource_info.expects(:plural_name).returns(:children)
-      assert_equal :child, @resource.send(:instance_name)
-      assert_equal :parent, @resource.send(:parent_name)
-      assert_equal :children, @resource.send(:plural_instance_name)
+    context 'Member actions' do
+      setup do
+        Trust::Controller::Resource.any_instance.expects(:extract_resource_info).with('child', { :id => 1 }).returns(@resource_info)
+        Trust::Controller::Resource.any_instance.expects(:extract_parent_info).with({:parent => nil}, { :id => 1 }, @request).returns(@parent_info)
+      end
+      should 'load as expected' do
+        @resource = Trust::Controller::Resource.new(@controller, @properties, 'member',{ :id => 1 }, @request)
+        @properties.actions :member => [:member]
+        @resource_info.stubs(:params).returns({})
+        @controller.expects(:respond_to?).with(:build).returns(false)
+        Child.expects(:find).with(1).returns(Child.new)
+        @resource.load
+        assert_equal 6, @controller.instance_variable_get(:@parent)
+        assert_equal 6, @resource.parent
+        assert @controller.instance_variable_get(:@child).is_a?(Child)
+        assert @resource.instance.is_a?(Child)
+      end
     end
-    should 'have access to instances' do
-      @resource = Trust::Controller::Resource.new(@controller, @properties, 'new',{}, @request)
-      @resource.expects(:plural_instance_name).twice.returns(:children)
-      @resource.instances = [1]
-      assert_equal [1], @resource.instances
-      assert_equal [1], @controller.instance_variable_get(:@children)
-    end
-    should 'have access to instantiated' do
-      @resource = Trust::Controller::Resource.new(@controller, @properties, 'new',{}, @request)
-      @resource.expects(:instances).returns(1)
-      assert_equal 1, @resource.instantiated
-      @resource.expects(:instances).returns(nil)
-      @resource.expects(:instance).returns(2)
-      assert_equal 2, @resource.instantiated
-    end
-    should 'load as expected' do
-      @resource = Trust::Controller::Resource.new(@controller, @properties, 'new',{}, @request)      
-      @resource_info.stubs(:params).returns({})
-      @controller.expects(:respond_to?).with(:build).returns(false)
-      @resource.load
-      assert_equal 6, @controller.instance_variable_get(:@parent)
-      assert_equal 6, @resource.parent
-      assert @controller.instance_variable_get(:@child).is_a?(Child)
-      assert @resource.instance.is_a?(Child)
+    context 'Nested resources' do
+      setup do
+        Trust::Controller::Resource.any_instance.expects(:extract_resource_info).with('child', { :child_id => 1 }).returns(@resource_info)
+        Trust::Controller::Resource.any_instance.expects(:extract_parent_info).with({:parent => nil}, { :child_id => 1 }, @request).returns(@parent_info)
+      end
+      should 'load as expected' do
+        @resource = Trust::Controller::Resource.new(@controller, @properties, 'member',{ :child_id => 1 }, @request)
+        @properties.actions :member => [:member]
+        @resource_info.stubs(:params).returns({})
+        @controller.expects(:respond_to?).with(:build).returns(false)
+        Child.expects(:find).with(1).returns(Child.new)
+        @resource.load
+        assert_equal 6, @controller.instance_variable_get(:@parent)
+        assert_equal 6, @resource.parent
+        assert @controller.instance_variable_get(:@child).is_a?(Child)
+        assert @resource.instance.is_a?(Child)
+      end
     end
   end
   
