@@ -60,14 +60,15 @@ module Trust
       # returns or sets the model to be used in a controller
       # If not set, the controller_path is used
       # You can override the model to be accessed in a controller by setting the model
+      # Note that you should specify the model in plural form.
       #
       # ==== Example
       #
       #    # You have a controller which inherits from a generic controller and it has not the same name. Below
-      #    model :account # will assume that the class to be Account and instance variables to be @account/@accounts
+      #    model :accounts # will assume that the class to be Account and instance variables to be @account/@accounts
       #
       #    # name spaced models
-      #    model :"customer/account"
+      #    model :"customer/accounts"
       #
       def model(name = nil)
         @model = name.to_s if name
