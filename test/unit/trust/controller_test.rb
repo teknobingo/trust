@@ -123,15 +123,17 @@ class Trust::ControllerTest < ActiveSupport::TestCase
       end
       should 'should have default parameters' do
         resource = stub('Resource')
+        relation = stub('Relation')
         @controller.expects(:resource).returns(resource).at_least_once
+        relation.expects(:new).returns(:some_relation_instance)
+        resource.expects(:relation).returns(relation)
         resource.expects(:instance).returns(:instance)
         resource.expects(:parent).returns(:parent)
         Trust::Authorization.expects(:authorized?).with(:manage,:instance,:parent)
         @controller.can? :manage
         resource.expects(:instance).returns(nil)
-        resource.expects(:klass).returns(:klass)
         resource.expects(:parent).returns(:parent)
-        Trust::Authorization.expects(:authorized?).with(:manage,:klass,:parent)
+        Trust::Authorization.expects(:authorized?).with(:manage,:some_relation_instance,:parent)
         @controller.can? :manage
       end
       should 'be exposed as helper' do

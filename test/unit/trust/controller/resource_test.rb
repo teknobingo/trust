@@ -242,7 +242,7 @@ class Trust::Controller::ResourceTest < ActiveSupport::TestCase
       should 'load as expected' do
         @resource = Trust::Controller::Resource.new(@controller, @properties, 'new',{}, @request)      
         @resource_info.stubs(:params).returns({})
-        @controller.expects(:respond_to?).with(:build).returns(false)
+        @resource_info.expects(:klass).returns(:something)
         @resource.load
         assert_equal 6, @controller.instance_variable_get(:@parent)
         assert_equal 6, @resource.parent
