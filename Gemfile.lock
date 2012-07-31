@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    trust (0.6.1)
+    trust (0.6.2)
       rails (>= 3.0.1)
 
 GEM
@@ -52,7 +52,7 @@ GEM
       mime-types (~> 1.16)
       treetop (~> 1.4.8)
     metaclass (0.0.1)
-    mime-types (1.18)
+    mime-types (1.19)
     mocha (0.11.4)
       metaclass (~> 0.0.1)
     mongo (1.6.2)
