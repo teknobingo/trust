@@ -250,7 +250,7 @@ module Trust
       def relation(associated_resource)
         if associated_resource && associated_resource.object
           name = associated_resource.as || plural_name
-          associated_resource.klass.reflect_on_association(name) ? 
+          associated_resource.object.class.reflect_on_association(name) ? 
             associated_resource.object.send(name) : associated_resource.object.send(klass.to_s.demodulize.underscore.pluralize)
         else
           klass
