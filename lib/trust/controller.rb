@@ -23,6 +23,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 module Trust
+  # = Trust Controller
   module Controller
     autoload :Resource,           'trust/controller/resource'
     autoload :Properties,         'trust/controller/properties'
@@ -49,6 +50,7 @@ module Trust
       delegate :belongs_to, :actions, :model, :to => :properties
 
       # Enables authorization in controller
+      #
       # +trustee+ accepts +:off+ or a hash of +callback+ options such as +:except+ and +:only+
       #
       # +trustee+ automatically calls the class methods: +set_user+, +load_resource+ and +access_control+
@@ -82,8 +84,6 @@ module Trust
       #       redirect_to root_url, :alert => exception.message
       #     end
       #   end
-      
-
       def trustee(*args)
         module_eval do
           include TrustInstanceMethods
@@ -95,15 +95,20 @@ module Trust
       end
       
       # Enable or disable +before_filter+ callback for setting the current user
-      # Arguments:
+      #
+      # === Arguments:
+      #
       #  :off - switch callback off
       #  :only - only include these actions
       #  :except - except these actions
       def set_user(*args)
         _filter_setting(:set_user, *args)
       end
+      
       # Enable or disable +before_filter+ callback for setting the loading resource
-      # Arguments:
+      #
+      # === Arguments:
+      #
       #  :off - switch callback off
       #  :only - only include these actions
       #  :except - except these actions
@@ -112,7 +117,9 @@ module Trust
       end
       # Enable or disable +before_filter+ callback for setting the access control, i.e. verifying permissions
       # for the logged in user
-      # Arguments:
+      #
+      # === Arguments:
+      #
       #  :off - switch callback off
       #  :only - only include these actions
       #  :except - except these actions
@@ -132,7 +139,7 @@ module Trust
     
     module TrustInstanceMethods
       # Returns the controller Trust::Controller::Properties.
-      # If no properties are instantiated, it will be instantiated
+      # If no properties are instantiated, it will be instantiated.
       # 
       # == Delegated methods
       #
@@ -146,8 +153,9 @@ module Trust
         self.class.properties
       end
       
-      # Sets the current user. It assumes +current_user+ is defined
-      # This method is triggered as a callback on +before_filter+
+      # Sets the current user. It assumes +current_user+ is defined.
+      #
+      # This method is triggered as a callback on +before_filter+.
       # You may override this method.
       #
       # ==== Example
@@ -160,28 +168,32 @@ module Trust
       end
 
       # Returns the Trust::Controller::Resource resource for the controller.
-      # Available as a helper in views
-      # See Trust::Controller::Resource for relevant methods
+      #
+      # Available as a helper in views.
+      # See {Trust::Controller::Resource} for relevant methods.
       def resource
         @resource ||= Trust::Controller::Resource.new(self, self.class.properties, action_name, params, request)
       end
       
       # Loads the resource which basically means loading the instance and eventual parent defined through +belongs_to+
+      #
       # This method is triggered as a callback on +before_filter+
-      # See Trust::Controller::Resource for more information
+      # See {Trust::Controller::Resource} for more information
       def load_resource
         resource.load
       end
       
-      # Performs the actual access_control
+      # Performs the actual access_control.
+      #
       # This method is triggered as a callback on +before_filter+
       def access_control
         Trust::Authorization.authorize!(action_name, resource.instance || resource.klass, resource.parent)
       end
 
-      # Tests for current users permissions
+      # Tests for current users permissions.
+      #
       # If access control is not sufficient in controller, you may use this method.
-      # Also available as a helper in views
+      # Also available as a helper in views.
       #
       # ==== Examples
       #   can? :edit                          # does the current user have permission to edit the current resource? 

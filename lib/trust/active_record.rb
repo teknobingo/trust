@@ -23,31 +23,32 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 module Trust
+  # = Trust::ActiveRecord extension
+  #
+  # Extends ActiveRecord with the +permits?+ and +ensure_permitted!+ method on class and instances
+  #
+  # ==== Examples
+  #
+  #    # If current user is permitted to create customers, create it
+  #    if Customer.permits? :create
+  #      Customer.create attributes
+  #    end
+  #    
+  #    # If current user is permitted to create accounts for the given customer, create it
+  #    if Account.permits? :create, @customer
+  #      Account.create attributes
+  #    end
+  #    
+  #    # If current user is permitted to update the given customer, update it
+  #    if @customer.permits? :update
+  #      @customer.save
+  #    end
+  #    
+  #    # Raise an exception if user is not permitted to update the given customer, else save it
+  #    @customer.ensure_permitted! :update 
+  #    @customer.save
   module ActiveRecord
     extend ActiveSupport::Concern
-# = Trust::ActiveRecord extension
-# Extends ActiveRecord with the +permits?+ and +ensure_permitted!+ method on class and instances
-#
-# ==== Examples
-#
-#    # If current user is permitted to create customers, create it
-#    if Customer.permits? :create
-#      Customer.create attributes
-#    end
-#    
-#    # If current user is permitted to create accounts for the given customer, create it
-#    if Account.permits? :create, @customer
-#      Account.create attributes
-#    end
-#    
-#    # If current user is permitted to update the given customer, update it
-#    if @customer.permits? :update
-#      @customer.save
-#    end
-#    
-#    # Raise an exception if user is not permitted to update the given customer, else save it
-#    @customer.ensure_permitted! :update 
-#    @customer.save
 
     included do
       include ClassMethods

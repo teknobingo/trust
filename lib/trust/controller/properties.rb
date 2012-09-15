@@ -24,6 +24,7 @@
 
 module Trust
   module Controller
+    # = Trust Coontroller Properties
     class Properties
       delegate :logger, :to => Rails
       attr_reader :controller
@@ -33,7 +34,7 @@ module Trust
       attr_accessor :member_actions
       attr_accessor :collection_actions
       
-      def initialize(controller, properties) # nodoc
+      def initialize(controller, properties) #:nodoc:
         @controller = controller
         @model = controller.controller_path
         if properties
@@ -50,16 +51,18 @@ module Trust
       end
 
       class << self
-        # returns a controller properties object
-        # ensures controller properties are instantiated in a correct manner and that inheritance is supported
+        # Returns a controller properties object.
+        #
+        # Ensures controller properties are instantiated in a correct manner and that inheritance is supported
         def instantiate(controller)
           new(controller, controller.superclass.instance_variable_get(:@properties))
         end
       end
 
-      # returns or sets the model to be used in a controller
-      # If not set, the controller_path is used
-      # You can override the model to be accessed in a controller by setting the model
+      # Returns or sets the model to be used in a controller
+      #
+      # If not set, the controller_path is used.
+      # You can override the model to be accessed in a controller by setting the model.
       # Note that you should specify the model in plural form.
       #
       # ==== Example
@@ -81,10 +84,12 @@ module Trust
       end
       
       # Specify associated resources (nested resources)
-      # Example:
-      #   belongs_to :lottery
-      #   belongs_to :table, :card_game
-      #   belongs_to :card_game, :as => :bridge
+      #
+      # === Example
+      #
+      #   +belongs_to+ :lottery
+      #   +belongs_to+ :table, :card_game
+      #   +belongs_to+ :card_game, :as => :bridge
       #
       def belongs_to(*resources)
         raise ArgumentError, "You must specify at least one resource after belongs_to" unless resources
@@ -99,8 +104,10 @@ module Trust
         @associations.size > 0
       end
       
-      # actions(options)
-      # Options
+      # Specify actions to handle
+      #
+      # === Options
+      #
       #  :new => actions        # specify new actions - default id :new, :create
       #  :member => actions     # specify member actions - default is :show, :edit, :update, :destroy
       #  :collection => actions # specify collection actions - default is :index

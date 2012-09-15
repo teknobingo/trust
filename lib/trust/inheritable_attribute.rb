@@ -23,9 +23,10 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 module Trust
+  # = Trust InheritableAttribute
   module InheritableAttribute
 
-    def self.deep_copy value
+    def self.deep_copy( value) #:nodoc:
       if value.is_a? Hash
         Hash[*value.map{ |k,v| [self.deep_copy(k),self.deep_copy(v)] }.flatten(1)]
       elsif value.is_a? Array
@@ -40,11 +41,12 @@ module Trust
     extend ActiveSupport::Concern
 
     module ClassMethods
-      # Creates an inheritable attribute with accessors in the singleton class. Derived classes inherit the
-      # attributes. This is especially helpful with arrays or hashes that are extended in the inheritance
-      # chain. Note that you have to initialize the inheritable attribute.
+      # Creates an inheritable attribute with accessors in the singleton class. 
+      # 
+      # Derived classes inherit the attributes. This is especially helpful with arrays or hashes that 
+      # are extended in the inheritance chain. Note that you have to initialize the inheritable attribute.
       #
-      # Example:
+      # === Example
       #
       #   class Cat
       #     inheritable_attr :drinks

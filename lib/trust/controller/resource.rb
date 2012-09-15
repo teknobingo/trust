@@ -61,7 +61,8 @@ module Trust
       end
       
       # Sets the instance variable
-      # Normally set by +load+
+      #
+      # Normally set by +load+.
       # You can access this method from the resource object.
       #
       # ==== Example
@@ -97,12 +98,14 @@ module Trust
       end
 
       # Sets the instance variable for collection
+      #
       # You may want to set this variable in your index action, we do not yet support loading of collections
       def instances=(instances)
         @controller.instance_variable_set(:"@#{plural_instance_name}", instances)
       end
 
       # Returns either the instances or the instance. 
+      #
       # We have found that this can be useful in some implementation patterns
       def instantiated
         instances || instance
@@ -113,8 +116,10 @@ module Trust
         info.klass
       end
 
-      # Loads the resource 
+      # Loads the resource
+      #
       # See Trust::Controller::Properties which controls the behavior of this method.
+      #
       # It will normally find the instance variable for existing object or initialize them as new.
       # If using nested resources and +belongs_to+ has been declared in the controller it will use the 
       # parent relation if found.
@@ -134,6 +139,7 @@ module Trust
       end
       
       # Returns the name of the instance for the resource
+      #
       # ==== Example
       #
       #     # in AccountsController
@@ -143,6 +149,7 @@ module Trust
       end
       
       # Returns the plural name of the instance for the resource
+      #
       # ==== Example
       #
       #     # in AccountsController
@@ -152,6 +159,7 @@ module Trust
       end
       
       # Returns the name of the parent resource
+      #
       # ==== Example
       #
       #     # in AccountsController where belongs_to :customer has been declared
@@ -171,31 +179,35 @@ module Trust
       end      
     end
 
-    # ResorceInfo resolves information about the resource accessed in action controller
+    # = ResorceInfo 
     #
-    # Examples in PeopleController (simple case)
-    # ===
+    # resolves information about the resource accessed in action controller
+    #
+    # === Examples in PeopleController (simple case)
+    # 
     #   resource.info.klass => Person
     #   resource.info.params => {:person => {...}}       # fetches the parameters for the resource
     #   resource.info.name => :person
     #   resource.info.plural_name => :people
     #   resource.info.path => 'people'                   # this is the controller_path
     #
-    # Examples in Lottery::AssignmentsController (with name space)
-    # ===
+    # === Examples in Lottery::AssignmentsController (with name space)
+    # 
     #   resource.info.klass => Lottery::Assignment
     #   resource.info.params => {:lottery_assignment => {...}}
     #   resource.info.name => :lottery_assignment
     #   resource.info.plural_name => :lottery_assignments
     #   resource.info.path => 'lottery/assignments'      # this is the controller_path
     #
-    # Examples in ArchiveController (with inheritance) 
+    # === Examples in ArchiveController (with inheritance) 
     # Assumptions on routes:
+    #
     #   resources :archives
     #   resources :secret_acrvives, :controller => :archives
     #   resources :public_acrvives, :controller => :archives
-    # examples below assumes that the route secret_arcives is being accessed at the moment
-    # ===
+    #
+    # === Examples below assumes that the route secret_arcives is being accessed at the moment
+    # 
     #   resource.info.klass => Archive
     #   resource.info.params => {:secret_archive => {...}}
     #   resource.info.name => :archive
@@ -203,27 +215,29 @@ module Trust
     #   resource.info.path => 'archive'                   # this is the controller_path
     #   resource.info.real_class => SecretArchive         # Returns the real class which is accessed at the moment
     #
-    
     class Resource::Info
       attr_reader :klass, :params, :name, :path, :real_class
       
-      def params
+      def params #:nodoc:
         @data
       end
    
     protected
-      def self.var_name(klass)
+      def self.var_name(klass)  #:nodoc:
         klass.to_s.underscore.tr('/','_').to_sym
       end
-      def var_name(klass)
+      def var_name(klass)  #:nodoc:
         self.class.var_name(klass)
       end
     end
     
-
+    # = Resource::ResorceInfo 
+    # 
+    # Resolves the resource in subject
+    # (see #ResourceInfo)
     class Resource::ResourceInfo < Resource::Info
 
-      def initialize(model, params)
+      def initialize(model, params)  #:nodoc:
         @path, params = model, params
         @klass = model.to_s.classify.constantize
         @name = model.to_s.singularize.underscore.gsub('/','_').to_sym
@@ -234,13 +248,15 @@ module Trust
         @data = params[var_name(ptr)]
       end
 
+      # Returns the plural name of the resource
       def plural_name
         @plural_name ||= path.underscore.tr('/','_').to_sym
       end
 
-      # returns an accessor for association. Tries with full name association first, and if that does not match, tries the demodularized association.
+      # Returns an accessor for association. Tries with full name association first, and if that does not match, tries the demodularized association.
       #
-      # Explanation:
+      # === Explanation
+      #
       #   Assuming 
       #     resource is instance of Lottery::Package #1 (@lottery_package)
       #     association is Lottery::Prizes
@@ -258,6 +274,10 @@ module Trust
       end
     end
 
+    # = Resource::ParentInfo 
+    # 
+    # Resolves the parent resource in subject
+    # (see #ResourceInfo)
     class Resource::ParentInfo < Resource::Info
       attr_reader :object,:as
       def initialize(resources, params, request)
