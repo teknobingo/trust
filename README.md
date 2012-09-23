@@ -157,9 +157,11 @@ class Auditor
 end
 ```
 
-Now you can test if the auditor has permission to modify customer for client
+Now you can test if the auditor has permission to modify customer for client. Three ways of writing it
 ``` Ruby
   @auditor.can? :update, @customer, @client
+  @auditor.can? :update, @customer, :for => @client
+  @auditor.can? :update, @customer, :parent => @client
 ```
 
 The above is the same as
