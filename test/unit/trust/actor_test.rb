@@ -22,30 +22,27 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require 'trust/exceptions'
-require 'trust/inheritable_attribute'
-module Trust
-  autoload :Permissions,        'trust/permissions'
-  autoload :Controller,         'trust/controller'
-  autoload :Authorization,      'trust/authorization'
-  autoload :ActiveModel,        'trust/active_model'
-  autoload :Actor,              'trust/actor'
-end
-require 'trust/controller'
-class ActionController::Base
-  include Trust::Controller
-end
-if defined?(ActiveRecord)
-  class ActiveRecord::Base
-    include Trust::ActiveModel
+require 'test_helper'
+
+class Trust::ActorTest < ActiveSupport::TestCase
+  class User
+    include ::Trust::Actor
   end
-end
-# always, as it may not exists yet
-module Mongoid
-  module Document
-    include Trust::ActiveModel
-    def Document.included(base)
-      base.send(:extend,Trust::ActiveModel::ClassMethods)
+  
+  context 'can?' do
+    setup do
+      @user = User.new
+      @account = Account.new
+    end
+    should 'support calls to authorized? on instance' do
+      Trust::Authorization.expects(:authorized?).with(:manage,@account, :by => @user, :parent => nil)
+      @user.can? :manage, @account
+      Trust::Authorization.expects(:authorized?).with(:manage,@account, :by => @user, :parent => :foo)
+      @user.can? :manage, @account, :foo
+      Trust::Authorization.expects(:authorized?).with(:manage,@account, :by => @user, :parent => :foo)
+      @user.can? :manage, @account, :parent => :foo
+      Trust::Authorization.expects(:authorized?).with(:manage,@account, :by => @user, :parent => :foo)
+      @user.can? :manage, @account, :for => :foo
     end
   end
 end

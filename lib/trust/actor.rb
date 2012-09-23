@@ -22,30 +22,34 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require 'trust/exceptions'
-require 'trust/inheritable_attribute'
 module Trust
-  autoload :Permissions,        'trust/permissions'
-  autoload :Controller,         'trust/controller'
-  autoload :Authorization,      'trust/authorization'
-  autoload :ActiveModel,        'trust/active_model'
-  autoload :Actor,              'trust/actor'
-end
-require 'trust/controller'
-class ActionController::Base
-  include Trust::Controller
-end
-if defined?(ActiveRecord)
-  class ActiveRecord::Base
-    include Trust::ActiveModel
-  end
-end
-# always, as it may not exists yet
-module Mongoid
-  module Document
-    include Trust::ActiveModel
-    def Document.included(base)
-      base.send(:extend,Trust::ActiveModel::ClassMethods)
+  # = Trust::Actor extension
+  #
+  # Include this module if you want to check if an actor can act upon a specific subject
+  #
+  # ==== Examples
+  #
+  #    # If the @actor can create customers, create it
+  #    if @actor.can? :create, Customer
+  #      Customer.create attributes
+  #    end
+  #    
+  #    # If @actor can create accounts for the given customer, create it
+  #    if @actor.can? :create, Account, @customer
+  #      Account.create attributes
+  #    end
+  #    # It is also possible to make code more descripting for the same as above
+  #    if @actor.can? :create, Account, :parent => @customer     # or, ...
+  #    if @actor.can? :create, Account, :for => @customer
+  #    
+  module Actor
+    extend ActiveSupport::Concern
+
+    def can?(action, subject, *args)
+      options = args.extract_options!
+      options[:parent] ||= args.first || options.delete(:for)
+      options[:by] = self
+      Trust::Authorization.authorized?(action, subject, options)
     end
   end
 end

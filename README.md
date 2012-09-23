@@ -141,8 +141,30 @@ can? :edit, @account, @client       # is current user allowed to edit the accoun
 #### On ActiveRecord objects you will use permits?
 
 ``` Ruby
-@customer.permits? :edit            # does the current user have permission to edit the given customer?
-Customer.permits? :create, @client  # does the current user have permission to create customers?
+@customer.permits? :edit                             # does the current user have permission to edit the given customer?
+Customer.permits? :create, @client                   # does the current user have permission to create customers for client?
+Customer.permits? :create, @client, :by => @auditor  # does the auditor have permission to create customers?
+Customer.permits? :create, :for => @client, :by => @auditor  # same as above
+```
+
+#### You can also designate actors in your model so you can test if other people has access to do operations on a subject
+
+Include the Actor role in the class
+``` Ruby
+class Auditor
+  include Trust::Actor
+  ...
+end
+```
+
+Now you can test if the auditor has permission to modify customer for client
+``` Ruby
+  @auditor.can? :update, @customer, @client
+```
+
+The above is the same as
+``` Ruby
+@customer.permits? :update, @client, :by => @auditor 
 ```
 
 ## Instance variables
