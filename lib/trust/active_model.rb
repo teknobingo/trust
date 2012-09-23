@@ -22,35 +22,45 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-require 'test_helper'
+module Trust
+  # = Trust::ActiveModel extension
+  #
+  # Extends ActiveModel with the +permits?+ and +ensure_permitted!+ method on class and instances
+  #
+  # ==== Examples
+  #
+  #    # If current user is permitted to create customers, create it
+  #    if Customer.permits? :create
+  #      Customer.create attributes
+  #    end
+  #    
+  #    # If current user is permitted to create accounts for the given customer, create it
+  #    if Account.permits? :create, @customer
+  #      Account.create attributes
+  #    end
+  #    
+  #    # If current user is permitted to update the given customer, update it
+  #    if @customer.permits? :update
+  #      @customer.save
+  #    end
+  #    
+  #    # Raise an exception if user is not permitted to update the given customer, else save it
+  #    @customer.ensure_permitted! :update 
+  #    @customer.save
+  module ActiveModel
+    extend ActiveSupport::Concern
 
-class Trust::ActiveRecordTest < ActiveSupport::TestCase
-  context 'permits?' do
-    setup do
-      @user = User.new
-      @account = Account.new
+    included do
+      include ClassMethods
     end
-    should 'support calls to athorized? on class level' do
-      Trust::Authorization.expects(:authorized?).with(:manage,Account,:foo)
-      Account.permits? :manage, :foo
-    end
-    should 'support calls to athorized? on instance' do
-      Trust::Authorization.expects(:authorized?).with(:manage,@account,:foo)
-      @account.permits? :manage, :foo
-    end
-  end
-  context 'ensure_permitted!' do
-    setup do
-      @user = User.new
-      @account = Account.new
-    end
-    should 'support calls to athorized? on class level' do
-      Trust::Authorization.expects(:authorize!).with(:manage,Account,:foo)
-      Account.ensure_permitted! :manage, :foo
-    end
-    should 'support calls to athorized? on instance' do
-      Trust::Authorization.expects(:authorize!).with(:manage,@account,:foo)
-      @account.ensure_permitted! :manage, :foo
+    
+    module ClassMethods
+      def permits?(action, parent = nil)
+        Trust::Authorization.authorized?(action, self, parent)
+      end
+      def ensure_permitted!(action, parent = nil)
+        Trust::Authorization.authorize!(action, self, parent)
+      end
     end
   end
 end

@@ -28,7 +28,7 @@ module Trust
   autoload :Permissions,        'trust/permissions'
   autoload :Controller,         'trust/controller'
   autoload :Authorization,      'trust/authorization'
-  autoload :ActiveRecord,       'trust/active_record'
+  autoload :ActiveModel,        'trust/active_model'
 end
 require 'trust/controller'
 class ActionController::Base
@@ -36,15 +36,15 @@ class ActionController::Base
 end
 if defined?(ActiveRecord)
   class ActiveRecord::Base
-    include Trust::ActiveRecord
+    include Trust::ActiveModel
   end
 end
 # always, as it may not exists yet
 module Mongoid
   module Document
-    include Trust::ActiveRecord
+    include Trust::ActiveModel
     def Document.included(base)
-      base.send(:extend,Trust::ActiveRecord::ClassMethods)
+      base.send(:extend,Trust::ActiveModel::ClassMethods)
     end
   end
 end
