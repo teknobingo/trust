@@ -25,7 +25,13 @@
 module Trust
   # = Trust::ActiveModel extension
   #
-  # Extends ActiveModel with the +permits?+ and +ensure_permitted!+ method on class and instances
+  # Extends ActiveRecord with the +permits?+ and +ensure_permitted!+ method on class and instances
+  # If using Mongoid same features are included there
+  #
+  # Options:
+  #
+  # * +:parent+ - Specifies that the persmision should be tested in the context of a parent 
+  # * +:by+ - Specifies an actor to be used instead of the currently logged in user
   #
   # ==== Examples
   #
@@ -39,13 +45,17 @@ module Trust
   #      Account.create attributes
   #    end
   #    
-  #    # If current user is permitted to update the given customer, update it
-  #    if @customer.permits? :update
-  #      @customer.save
+  #    # If the specified actor is permitted to create accounts for the given customer, create it
+  #    if Account.permits? :create, @customer, :by => @actor
+  #      Account.create attributes
   #    end
   #    
   #    # Raise an exception if user is not permitted to update the given customer, else save it
-  #    @customer.ensure_permitted! :update 
+  #    @customer.ensure_permitted! :update
+  #    @customer.save
+  #    
+  #    # Raise an exception if the specified user is not permitted to update the given customer, else save it
+  #    @customer.ensure_permitted! :update, :by => @actor
   #    @customer.save
   module ActiveModel
     extend ActiveSupport::Concern
@@ -55,11 +65,11 @@ module Trust
     end
     
     module ClassMethods
-      def permits?(action, parent = nil)
-        Trust::Authorization.authorized?(action, self, parent)
+      def permits?(action, *args)
+        Trust::Authorization.authorized?(action, self, *args)
       end
-      def ensure_permitted!(action, parent = nil)
-        Trust::Authorization.authorize!(action, self, parent)
+      def ensure_permitted!(action, *args)
+        Trust::Authorization.authorize!(action, self, *args)
       end
     end
   end
