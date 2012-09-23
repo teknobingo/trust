@@ -29,11 +29,20 @@ module Trust
       
       # Returns true if user is authorized to perform +action+ on +object+ or +class+.
       #
-      # If +parent+ is given, +parent+ may be tested in the implemented Permissions class.
+      # Options:
+      # 
+      # * +:parent+ - the parent class to associate the subject with, can also be specified after the object
+      #   or class. If +parent+ is given, +parent+ may be tested in the implemented Permissions class.
+      #   +:parent+ is also aliased to +:for+.
       #
+      # * +:by+ - Spoecify an actor instead of the user currently logged in 
+      # 
       # This method is called by the +can?+ method in Trust::Controller, and is normally 
       # not necessary to call directly.
-      def authorized?(action, object_or_class, parent)
+      def authorized?(action, object_or_class, *args)
+        options = args.extract_options!
+        parent = options[:parent] || options[:for] || args.first
+        actor = options[:by] || user
         if object_or_class.is_a? Class
           klass = object_or_class
           object = nil
@@ -44,18 +53,28 @@ module Trust
         # Identify which class to instanciate and then check authorization
         auth = authorizing_class(klass)
         # Rails.logger.debug "Trust: Authorizing class for #{klass.name} is #{auth.name}"
-        auth.new(user, action.to_sym, klass, object, parent).authorized?
+        auth.new(actor, action.to_sym, klass, object, parent).authorized?
       end
       
       # Tests if user is authorized to perform +action+ on +object+ or +class+, with the 
       # optional parent and raises Trust::AccessDenied exception if not permitted.
       #
-      # If using this method directly, an optional +message+ can be passed in to 
-      # replace the default message used.
+      # Options:
+      #
+      # * +:parent+ - the parent class to associate the subject with, can also be specified after the object
+      #   or class. If +parent+ is given, +parent+ may be tested in the implemented Permissions class.
+      #   +:parent+ is also aliased to +:for+.
+      #
+      # * +:by+ - Spoecify an actor instead of the user currently logged in 
+      # 
+      # * +:message+ - The message to be passed onto the AccessDenied exception class      
       #
       # This method is used by the +access_control+ method in Trust::Controller
-      def authorize!(action, object_or_class, parent, message = nil)
-        access_denied!(message, action, object_or_class, parent) unless authorized?(action, object_or_class, parent)
+      def authorize!(action, object_or_class, *args)
+        options = args.extract_options!
+        parent = options[:parent] || options[:for] || args.first
+        message = options[:message]
+        access_denied!(message, action, object_or_class, parent) unless authorized?(action, object_or_class, parent, options)
       end
       
       def access_denied!(message = nil, action = nil, subject = nil, parent = nil) #:nodoc:
