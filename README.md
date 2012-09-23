@@ -150,6 +150,7 @@ Customer.permits? :create, :for => @client, :by => @auditor  # same as above
 #### You can also designate actors in your model so you can test if other people has access to do operations on a subject
 
 Include the Actor role in the class
+
 ``` Ruby
 class Auditor
   include Trust::Actor
@@ -158,6 +159,7 @@ end
 ```
 
 Now you can test if the auditor has permission to modify customer for client. Three ways of writing it
+
 ``` Ruby
   @auditor.can? :update, @customer, @client
   @auditor.can? :update, @customer, :for => @client
@@ -165,6 +167,7 @@ Now you can test if the auditor has permission to modify customer for client. Th
 ```
 
 The above is the same as
+
 ``` Ruby
 @customer.permits? :update, @client, :by => @auditor 
 ```
@@ -229,6 +232,7 @@ end
 ```
 
 #### Alternatives
+
 ``` Ruby
 class MyController < ApplicationController
   set_user :off         # turns off set_user callback
@@ -238,6 +242,7 @@ end
 ```
 
 #### More specifically
+
 For all call backs and ```trustee``` you can use ```:only``` and ```:except``` options.
 Example toggle create action off
 ``` Ruby
@@ -248,6 +253,7 @@ end
 ```
 
 #### Yet another alternative, avoiding resource loading
+
 Avoid resource loading on ```show``` action
 ``` Ruby
 class MyController < ApplicationController

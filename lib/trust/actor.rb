@@ -25,7 +25,13 @@
 module Trust
   # = Trust::Actor extension
   #
-  # Include this module if you want to check if an actor can act upon a specific subject
+  # Include this module if you want to check if an actor can act upon a specific subject.
+  # E.g. if your class is Actor, then include like this:
+  #
+  #    class Actor < ActiveRecord::Base
+  #      include Trust::Actor
+  #      ...
+  #    end
   #
   # ==== Examples
   #

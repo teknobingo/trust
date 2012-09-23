@@ -24,21 +24,22 @@
 
 module Trust
   module Controller
+    # = Trust::Controller::Resource 
+    #
+    # Collects information about the current resource and relations. 
+    # Handles the loading of the resource and its possible parent, i.e. setting the relevant instance variables
+    # It assumes the name of the resource is built on the controllers name, but this can be overridden in your
+    # controller by setting the +model+
+    #
+    # Examples:
+    #
+    #    # controller name AccountsController
+    #    resource.instance # => @account
+    #
+    #    # controller name Customer::AccountsController
+    #    resource.instance # => @customer_account
+    #
     class Resource
-# = Trust::Controller::Resource 
-# Collects information about the current resource and relations. 
-# Handles the loading of the resource and its possible parent, i.e. setting the relevant instance variables
-# It assumes the name of the resource is built on the controllers name, but this can be overridden in your
-# controller by setting the +model+
-#
-# Examples:
-#
-#    # controller name AccountsController
-#    resource.instance # => @account
-#
-#    # controller name Customer::AccountsController
-#    resource.instance # => @customer_account
-#
       
       delegate :logger, :to => Rails
       attr_reader :properties, :params, :action
@@ -234,7 +235,7 @@ module Trust
     # = Resource::ResorceInfo 
     # 
     # Resolves the resource in subject
-    # (see #ResourceInfo)
+    # (see #Resource::Info)
     class Resource::ResourceInfo < Resource::Info
 
       def initialize(model, params)  #:nodoc:
@@ -277,7 +278,7 @@ module Trust
     # = Resource::ParentInfo 
     # 
     # Resolves the parent resource in subject
-    # (see #ResourceInfo)
+    # (see #Resource::ResourceInfo)
     class Resource::ParentInfo < Resource::Info
       attr_reader :object,:as
       def initialize(resources, params, request)
