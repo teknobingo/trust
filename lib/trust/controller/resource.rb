@@ -117,6 +117,12 @@ module Trust
         info.klass
       end
 
+      # Returns a collection that can be used for index, new and creation actions
+      def collection(instance = nil)
+        @info.collection(@parent_info, instance)
+      end
+      
+      
       # Loads the resource
       #
       # See Trust::Controller::Properties which controls the behavior of this method.
@@ -266,12 +272,26 @@ module Trust
       #   
       def relation(associated_resource)
         if associated_resource && associated_resource.object
-          name = associated_resource.as || plural_name
-          associated_resource.object.class.reflect_on_association(name) ? 
-            associated_resource.object.send(name) : associated_resource.object.send(klass.to_s.demodulize.underscore.pluralize)
+          associated_resource.object.send(association_name(associated_resource))
         else
           klass
         end
+      end
+      
+      # Returns a collection that can be used for index, new and creation actions
+      #
+      def collection(associated_resource, instance = nil)
+        if associated_resource && associated_resource.object
+          [associated_resource.object, instance || association_name(associated_resource)]
+        else
+          @path
+        end
+      end
+      
+    private
+      def association_name(associated_resource) # :nodoc
+        name = associated_resource.as || plural_name
+        associated_resource.object.class.reflect_on_association(name) ? name : klass.to_s.demodulize.underscore.pluralize        
       end
     end
 
