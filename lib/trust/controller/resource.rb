@@ -118,6 +118,8 @@ module Trust
       end
 
       # Returns a collection that can be used for index, new and creation actions
+      #
+      # See Trust::Controller::ResourceInfo.collection which controls the behavior of this method.
       def collection(instance = nil)
         @info.collection(@parent_info, instance)
       end
@@ -175,7 +177,10 @@ module Trust
         parent_info && parent_info.name
       end
       
-      
+      # Returns the association name with the parent
+      def association_name
+        parent_info && info.association_name(parent_info)
+      end
     private
       def extract_resource_info(model, params) # nodoc
         ResourceInfo.new(model, params)
@@ -278,17 +283,27 @@ module Trust
         end
       end
       
-      # Returns a collection that can be used for index, new and creation actions
+      # Returns a collection that can be used for index, new and creation actions.
+      #
+      # If specifying an instance, returns the full path for that instance. Can be used when not using shallow routes
+      #
+      # === Example
+      #
+      #   Assumption
+      #     resource is instance of Lottery::Package #1 (@lottery_package)
+      #     association is Lottery::Prizes
+      #     if association is named lottery_prizes, then [@lottery_package, :lottery_prizes] is returned
+      #     if association is named prizes, then [@lottery_package, :prizes] is returned
+      #     if you specify an instance, then [@lottery_package, @prize] is returned
       #
       def collection(associated_resource, instance = nil)
         if associated_resource && associated_resource.object
           [associated_resource.object, instance || association_name(associated_resource)]
         else
-          @path
+          path
         end
       end
       
-    private
       def association_name(associated_resource) # :nodoc
         name = associated_resource.as || plural_name
         associated_resource.object.class.reflect_on_association(name) ? name : klass.to_s.demodulize.underscore.pluralize        
