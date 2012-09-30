@@ -38,9 +38,9 @@ module Trust
       # == Delegated methods
       #
       # The following methods are delegated to properties. See Trust::Controller::Properties for details
-      # * <tt>belongs_to</tt> - define one or more associations to parents
-      # * <tt>actions</tt> - acion definitions outside the restful actions
-      # * <tt>model</tt> - Redefine the model used in the controller (if it's name does not match the 
+      # * +belongs_to+ - define one or more associations to parents
+      # * +actions+ - acion definitions outside the restful actions
+      # * +model+ - Redefine the model used in the controller (if it's name does not match the 
       #   controller_path)
       #
       def properties
@@ -98,9 +98,9 @@ module Trust
       #
       # === Arguments:
       #
-      #  :off - switch callback off
-      #  :only - only include these actions
-      #  :except - except these actions
+      #  +:off+ - switch callback off
+      #  +:only+ - only include these actions
+      #  +:except+ - except these actions
       def set_user(*args)
         _filter_setting(:set_user, *args)
       end
@@ -109,9 +109,9 @@ module Trust
       #
       # === Arguments:
       #
-      #  :off - switch callback off
-      #  :only - only include these actions
-      #  :except - except these actions
+      #  +:off+ - switch callback off
+      #  +:only+ - only include these actions
+      #  +:except+ - except these actions
       def load_resource(*args)
         _filter_setting(:load_resource, *args)
       end
@@ -120,9 +120,9 @@ module Trust
       #
       # === Arguments:
       #
-      #  :off - switch callback off
-      #  :only - only include these actions
-      #  :except - except these actions
+      #  +:off+ - switch callback off
+      #  +:only+ - only include these actions
+      #  +:except+ - except these actions
       def access_control(*args)
         _filter_setting(:access_control, *args)
       end
@@ -144,9 +144,9 @@ module Trust
       # == Delegated methods
       #
       # The following methods are delegated to properties. See Trust::Controller::Properties for details
-      # * <tt>belongs_to</tt> - define one or more associations to parents
-      # * <tt>actions</tt> - acion definitions outside the restful actions
-      # * <tt>model</tt> - Redefine the model used in the controller (if it's name does not match the 
+      # * +belongs_to+ - define one or more associations to parents
+      # * +actions+ - acion definitions outside the restful actions
+      # * +model+ - Redefine the model used in the controller (if it's name does not match the 
       #   controller_path)
       #
       def properties
@@ -196,11 +196,11 @@ module Trust
       # Also available as a helper in views.
       #
       # ==== Examples
-      #   can? :edit                          # does the current user have permission to edit the current resource? 
-      #                                       # If there is a nested resource, the parent is automatically associated
-      #   can? :edit, @customer               # does the current user have permission to edit the given customer? 
-      #                                       # Parent is also passed on here.
-      #   can? :edit, @account, @client       # is current user allowed to edit the account associated with the client?
+      #   +can? :edit+                          # does the current user have permission to edit the current resource? 
+      #                                         # If there is a nested resource, the parent is automatically associated
+      #   +can? :edit, @customer+               # does the current user have permission to edit the given customer? 
+      #                                         # Parent is also passed on here.
+      #   +can? :edit, @account, @client+       # is current user allowed to edit the account associated with the client?
       def can?(action_name, subject = resource.instance || resource.relation.new, parent = resource.parent)
         Trust::Authorization.authorized?(action_name, subject, parent)
       end
