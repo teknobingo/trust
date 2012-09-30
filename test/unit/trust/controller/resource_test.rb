@@ -70,6 +70,21 @@ class Trust::Controller::ResourceTest < ActiveSupport::TestCase
       should 'resolve parameter' do
         assert_equal 'cool', @res.params
       end
+      context 'collection' do
+        should 'return array where parent represented' do
+          parent = stub('parent', :object => 12)
+          @res.expects(:association_name).with(parent).returns(15)
+          assert_equal [12, 15], @res.collection(parent)
+        end
+        should 'return path where no parent' do
+          assert_equal 'name_spaced_resource/my_entities', @res.collection(nil)
+        end
+        should 'return with instance if present' do
+          parent = stub('parent', :object => 12)
+          @res.expects(:association_name).never
+          assert_equal [12, 15], @res.collection(parent, 15)
+        end
+      end
     end
 
     context 'Irregular Instance' do
@@ -216,34 +231,34 @@ class Trust::Controller::ResourceTest < ActiveSupport::TestCase
       setup do
         Trust::Controller::Resource.any_instance.expects(:extract_resource_info).with('child', {}).returns(@resource_info)
         Trust::Controller::Resource.any_instance.expects(:extract_parent_info).with({:parent => nil}, {}, @request).returns(@parent_info)
-      end
-      should 'instantiate properly' do      
         @resource = Trust::Controller::Resource.new(@controller, @properties, 'new',{}, @request)      
       end
       should 'discover variable names' do
-        @resource = Trust::Controller::Resource.new(@controller, @properties, 'new',{}, @request)
         @resource_info.expects(:plural_name).returns(:children)
         assert_equal :child, @resource.send(:instance_name)
         assert_equal :parent, @resource.send(:parent_name)
         assert_equal :children, @resource.send(:plural_instance_name)
       end
       should 'have access to instances' do
-        @resource = Trust::Controller::Resource.new(@controller, @properties, 'new',{}, @request)
         @resource.expects(:plural_instance_name).twice.returns(:children)
         @resource.instances = [1]
         assert_equal [1], @resource.instances
         assert_equal [1], @controller.instance_variable_get(:@children)
       end
       should 'have access to instantiated' do
-        @resource = Trust::Controller::Resource.new(@controller, @properties, 'new',{}, @request)
         @resource.expects(:instances).returns(1)
         assert_equal 1, @resource.instantiated
         @resource.expects(:instances).returns(nil)
         @resource.expects(:instance).returns(2)
         assert_equal 2, @resource.instantiated
       end
+      should 'provide collection' do
+        @resource_info.expects(:collection).with(@parent_info, nil).returns(1)
+        assert_equal 1, @resource.collection
+        @resource_info.expects(:collection).with(@parent_info, 2).returns(3)
+        assert_equal 3, @resource.collection(2)
+      end
       should 'load as expected' do
-        @resource = Trust::Controller::Resource.new(@controller, @properties, 'new',{}, @request)      
         @resource_info.stubs(:params).returns({})
         @controller.expects(:respond_to?).with(:build).returns(false)
         @resource.load

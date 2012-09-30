@@ -25,7 +25,7 @@
 class Trust::ResourceHelper
   attr_accessor :instance, :parent, :instances
   attr_accessor :properties, :params, :action, :instance_params
-  attr_accessor :info, :parent_info, :relation
+  attr_accessor :info, :parent_info, :relation, :collection, :association_name
   class << self
     attr_accessor :properties
   end
@@ -40,6 +40,10 @@ class Trust::ResourceHelper
   
   def parent_name
     Trust::Controller::Resource::Info.var_name(parent.class)
+  end
+  
+  def association_name
+    @association_name || instance_name.to_s.pluralize.to_sym
   end
   
   def instantiated
