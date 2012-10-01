@@ -23,15 +23,15 @@ Well, we used [DeclarativeAuthorization](http://github.com/stffn/declarative_aut
 
 * Loading datasets for the index action. You may use other plugins / gems for doing this, or you may implement your own mechanism.
 
-### Currently not supported, but may be in the future
-
-* cannot and cannot? expressions.
-
 # Install and Setup
 
 Install the gem
 
     gem install trust
+    
+Or, in your Gemfile
+
+    gem 'trust'
 
 ### Define permissions
 

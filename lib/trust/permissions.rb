@@ -211,23 +211,32 @@ module Trust
             @@can_expressions = 0
             raise RoleAssigmnentMissing 
           end
-          @perms = []
+          @perms = {:can => [], :cannot => []}
           @in_role_block = true
           yield
           @in_role_block = false
-          perms = @perms          
+          perms = @perms
         else
           if @@can_expressions > 1
             @@can_expressions = 0
             raise RoleAssigmnentMissing 
           end
-          options = roles.extract_options!
-          raise ArgumentError, "Must have a block or a can expression" unless perms = options[:can]
+          perms = roles.extract_options!
+          unless perms.size >= 1 && (perms[:can] || perms[:cannot])
+            raise ArgumentError, "Must have a block or a can or a cannot expression: #{perms.inspect}"
+          end
           @@can_expressions = 0
         end
         roles.flatten.each do |role|
           self.permissions[role] ||= []
-          self.permissions[role] += perms
+          if perms[:cannot] && perms[:cannot].size > 0
+            perms[:cannot].each do |p|
+              self.permissions[role].delete_if { |perm| perm[0] == p  }
+            end
+          end
+          if perms[:can] && perms[:can].size > 0
+            self.permissions[role] += perms[:can]
+          end
         end
       end
       alias :roles :role
@@ -237,7 +246,12 @@ module Trust
       # === Arguments
       #
       #   action - can be an alias or an actions of some kind
-      #   options - :if/:unless :symbol or proc that will be called to evaluate an expression
+      #   options - control the behavior of the permission
+      #
+      # === Options
+      #   +:if/:unless+ - :symbol or proc that will be called to evaluate an expression
+      #   +enforce+ - set to true to enforce the permission, delete any previous grants given from parent classes. Most meaningful in
+      #               combination with +:if+ and +:unless+ options
       #
       # === Example
       #
@@ -254,12 +268,65 @@ module Trust
       # In the example above a method is used to test data on the actual record when testing for permissions.
       def can(*args)
         options = args.extract_options!
+        enforce = options.delete(:enforce)
         p = expand_aliases(args).collect { |action| [action, options] }
         if @in_role_block
-          @perms += p
+          @perms[:can] += p
+          if enforce
+            @perms[:cannot] = expand_aliases(args).collect { |action| action }
+          end
         else
           @@can_expressions += 1
-          return {:can => p }
+          perms = {:can => p }
+          if enforce
+            perms[:cannot] = expand_aliases(args).collect { |action| action }
+          end
+          return perms
+        end
+      end
+      
+      # Revokes permissions.
+      #
+      # Revokes any previous permissions given in parent classes. This cannot be used with conditions. See also +:enforce+ option
+      # for +can+
+      #
+      # +can+ has presedence over +cannot+. In practice this means that in a block; +cannot+ statements are processed before +can+,
+      # and any previously permissions granted are deleted. 
+      # Another way to say this is; if you have +cannot :destroy+ and +can :destroy+, then all inheritied destroys will first be
+      # deleted, and then the can destroy will be granted.
+      #
+      #
+      # === Arguments
+      # 
+      #   action - actions to be revoked permissions for. Cannot be aliases
+      #
+      # === Example
+      #
+      #   module Permissions
+      #     class Account < Trust::Permissions
+      #       role :admin, :accountant do 
+      #         can :read
+      #         can :read
+      #         can :update, :destroy, :unless => :closed?
+      #       end
+      #     end
+      #
+      #     class Account::Credit < Account
+      #        role :accountant do
+      #          cannot :destroy    # revoke permission to destroy
+      #        end
+      #     end
+      #   end
+      #
+      def cannot(*args)
+        options = args.extract_options!
+        raise ArgumentError, "No options (#{options.inspect}) are allowed for cannot. It is just meaning less" if options.size > 0
+        p = expand_aliases(args).collect { |action| action }
+        if @in_role_block
+          @perms[:cannot] += p
+        else
+          @@can_expressions += 1
+          return {:cannot => p }
         end
       end
   

@@ -254,5 +254,56 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
       expect = {:tester => [[:hi, {:if=>:ho}], [:wink, {}], [:hi, {:if=>:ha}]]}
       assert_equal expect, TestOverride.permissions
     end
+    
+    context 'with cannot' do
+      should  'not accept options' do
+        class TestCannnotArgumentError < Trust::Permissions
+        end
+        assert_raises ArgumentError do
+          TestCannnotArgumentError.cannot :do, :options => true
+        end
+      end
+      should 'revoke permissions' do
+        class TestBaseAuth3 < Trust::Permissions
+          role :tester, :friend do
+            can :hi, :if => :ho
+            can :wink
+          end
+        end
+        expect = {:tester => [[:hi, {:if => :ho}],[:wink, {}]], :friend => [[:hi, {:if => :ho}],[:wink, {}]]}
+        assert_equal expect, TestBaseAuth3.permissions
+        class TestCannot < TestBaseAuth3
+          role :tester, cannot(:wink)
+          role :friend do
+            cannot :hi
+          end
+        end
+        expect = {:tester => [[:hi, {:if => :ho}]], :friend => [[:wink, {}]]}
+        assert_equal expect, TestCannot.permissions
+      end
+    end
+    context 'with enforce' do
+      should 'override previous cans' do
+        class TestBaseAuth4 < Trust::Permissions
+          role :tester, :friend do
+            can :hi, :if => :ho
+            can :wink
+          end
+        end
+        expect = {:tester => [[:hi, {:if => :ho}],[:wink, {}]], :friend => [[:hi, {:if => :ho}],[:wink, {}]]}
+        assert_equal expect, TestBaseAuth4.permissions
+        class TestEnforce < TestBaseAuth4
+          role :tester, can(:wink, :enforce => true, :if => :yo)
+          role :friend do
+            can :hi, :enforce => true, :if => :sure
+          end
+        end
+        expect = {:tester => [[:hi, {:if => :ho}],[:wink, {:if => :yo}]], :friend => [[:wink, {}],[:hi, {:if => :sure}]]}
+        assert_equal expect, TestEnforce.permissions
+        # Parent permissions should not be affected
+        expect = {:tester => [[:hi, {:if => :ho}],[:wink, {}]], :friend => [[:hi, {:if => :ho}],[:wink, {}]]}
+        assert_equal expect, TestBaseAuth4.permissions
+      end
+    end
   end
 end
