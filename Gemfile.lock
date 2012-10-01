@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    trust (0.7.0)
+    trust (0.8.0)
       rails (>= 3.0.1)
 
 GEM
