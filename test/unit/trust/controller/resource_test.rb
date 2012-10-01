@@ -76,8 +76,8 @@ class Trust::Controller::ResourceTest < ActiveSupport::TestCase
           @res.expects(:association_name).with(parent).returns(15)
           assert_equal [12, 15], @res.collection(parent)
         end
-        should 'return path where no parent' do
-          assert_equal 'name_spaced_resource/my_entities', @res.collection(nil)
+        should 'return class where no parent' do
+          assert_equal NameSpacedResource::MyEntity, @res.collection(nil)
         end
         should 'return with instance if present' do
           parent = stub('parent', :object => 12)

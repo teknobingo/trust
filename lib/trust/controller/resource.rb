@@ -300,7 +300,7 @@ module Trust
         if associated_resource && associated_resource.object
           [associated_resource.object, instance || association_name(associated_resource)]
         else
-          path
+          klass
         end
       end
       
