@@ -40,12 +40,15 @@ if defined?(ActiveRecord)
     include Trust::ActiveModel
   end
 end
-# always, as it may not exists yet
-module Mongoid
-  module Document
-    include Trust::ActiveModel
-    def Document.included(base)
-      base.send(:extend,Trust::ActiveModel::ClassMethods)
+
+begin; require 'mongoid'; rescue LoadError; end
+if defined? ::Mongoid
+  module Mongoid
+    module Document
+      include Trust::ActiveModel
+      def Document.included(base)
+        base.send(:extend,Trust::ActiveModel::ClassMethods)
+      end
     end
   end
 end
