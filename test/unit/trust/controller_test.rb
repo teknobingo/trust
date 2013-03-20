@@ -72,6 +72,23 @@ class Trust::ControllerTest < ActiveSupport::TestCase
         Controller.expects(:before_filter).never
         Controller.access_control :off
       end
+      should 'only set filters that are not off' do
+        options = {:hello => :there, :set_user => :off}
+        Controller.expects(:before_filter).with(:set_user).never
+        Controller.expects(:before_filter).with(:load_resource, options)
+        Controller.expects(:before_filter).with(:access_control, options)
+        Controller.trustee options
+        options = {:hello => :there, :load_resource => :off}
+        Controller.expects(:before_filter).with(:set_user, options)
+        Controller.expects(:before_filter).with(:load_resource).never
+        Controller.expects(:before_filter).with(:access_control, options)
+        Controller.trustee options
+        options = {:hello => :there, :access_control => :off}
+        Controller.expects(:before_filter).with(:set_user, options)
+        Controller.expects(:before_filter).with(:load_resource, options)
+        Controller.expects(:before_filter).with(:access_control).never
+        Controller.trustee options
+      end
     end
     
   end

@@ -54,6 +54,7 @@ module Trust
       # +trustee+ accepts +:off+ or a hash of +callback+ options such as +:except+ and +:only+
       #
       # +trustee+ automatically calls the class methods: +set_user+, +load_resource+ and +access_control+
+      # +trustee+ accepts +:off+ for +set_user+, +load_resource+ and +access_control+ individually
       #
       # +trustee+ will raise an Trust::AccessDenied exception if the user is not permitted the action
       # 
@@ -75,6 +76,13 @@ module Trust
       #   class AccountsController < ApplicationController
       #     login_required
       #     trustee :only => [:new, :create]
+      #   end
+      #
+      #   # enable permission check for all restful actions, but without loading resources
+      #   class AccountsController < ApplicationController
+      #     login_required
+      #     trustee :load_resource => :off
+      #     model :objects
       #   end
       #
       # ==== Caching Trust::AccessDenied exception
@@ -131,7 +139,7 @@ module Trust
       def _filter_setting(method, *args)
         options = args.extract_options!
         skip_before_filter method
-        unless args.include? :off
+        unless args.include? :off or options[method] == :off
           before_filter method, options
         end
       end
