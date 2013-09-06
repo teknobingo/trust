@@ -137,11 +137,11 @@ module Trust
         if properties.new_actions.include?(action)
 #          logger.debug "Trust.load: Setting new: class: #{klass} info.params: #{info.params.inspect}"
           self.instance ||= relation.new(info.params)
-          @controller.send(:build, action) if @controller.respond_to?(:build)
+          @controller.send(:build, action) if @controller.respond_to?(:build,true)
         elsif properties.member_actions.include?(action)
 #          logger.debug "Trust.load: Finding parent: #{parent.inspect}, relation: #{relation.inspect}"
           self.instance ||= relation.find(params[:id] || params["#{relation.name.underscore}_id".to_sym])
-          @controller.send(:build, action) if @controller.respond_to?(:build)
+          @controller.send(:build, action) if @controller.respond_to?(:build,true)
         else # other outcome would be collection actions
 #          logger.debug "Trust.load: Parent is: #{parent.inspect}, collection or unknown action."
         end 

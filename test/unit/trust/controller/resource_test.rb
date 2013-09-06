@@ -260,7 +260,7 @@ class Trust::Controller::ResourceTest < ActiveSupport::TestCase
       end
       should 'load as expected' do
         @resource_info.stubs(:params).returns({})
-        @controller.expects(:respond_to?).with(:build).returns(false)
+        @controller.expects(:respond_to?).with(:build,true).returns(false)
         @resource.load
         assert_equal 6, @controller.instance_variable_get(:@parent)
         assert_equal 6, @resource.parent
@@ -277,7 +277,7 @@ class Trust::Controller::ResourceTest < ActiveSupport::TestCase
         @resource = Trust::Controller::Resource.new(@controller, @properties, 'member',{ :id => 1 }, @request)
         @properties.actions :member => [:member]
         @resource_info.stubs(:params).returns({})
-        @controller.expects(:respond_to?).with(:build).returns(false)
+        @controller.expects(:respond_to?).with(:build,true).returns(false)
         Child.expects(:find).with(1).returns(Child.new)
         @resource.load
         assert_equal 6, @controller.instance_variable_get(:@parent)
@@ -295,7 +295,7 @@ class Trust::Controller::ResourceTest < ActiveSupport::TestCase
         @resource = Trust::Controller::Resource.new(@controller, @properties, 'member',{ :child_id => 1 }, @request)
         @properties.actions :member => [:member]
         @resource_info.stubs(:params).returns({})
-        @controller.expects(:respond_to?).with(:build).returns(false)
+        @controller.expects(:respond_to?).with(:build,true).returns(false)
         Child.expects(:find).with(1).returns(Child.new)
         @resource.load
         assert_equal 6, @controller.instance_variable_get(:@parent)
