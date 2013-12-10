@@ -59,6 +59,15 @@ class Trust::AuthorizationTest < ActiveSupport::TestCase
       end
       assert_equal ::Permissions::TestBase, authorizing_class(::TestDescendant)
     end
+    should 'support customized base classes' do
+      class ::TheBaseClass
+      end
+      class ::TheBaseDescendant < ::TheBaseClass
+      end
+      class ::Permissions::TheBaseClass < Trust::Permissions
+      end
+      assert_equal ::Permissions::TheBaseClass, authorizing_class(::TheBaseDescendant)
+    end
   end
   
   context 'authorize?' do
