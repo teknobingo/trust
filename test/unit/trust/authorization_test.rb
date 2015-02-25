@@ -24,6 +24,16 @@
 
 require 'test_helper'
 
+class TestBase < ActiveRecord::Base
+end
+class TestDescendant < TestBase
+end
+class TestParentLess < ActiveRecord::Base
+end
+
+class Permissions::TestBase < Trust::Permissions
+end
+
 class Trust::AuthorizationTest < ActiveSupport::TestCase
   context 'user' do
     should 'be set in thread' do
@@ -38,25 +48,17 @@ class Trust::AuthorizationTest < ActiveSupport::TestCase
   
   context 'authorizing_class' do
     setup do
-      class ::TestBase < ActiveRecord::Base
-      end
-      class ::TestDescendant < TestBase
-      end
       def authorizing_class(klass)
         Trust::Authorization.send(:authorizing_class, klass)
       end
     end
     should 'return associated Authorization class if it exists' do
-      class ::Permissions::TestBase < Trust::Permissions
-      end
       assert_equal ::Permissions::TestBase, authorizing_class(::TestBase)
     end
     should 'return Authorization::Default if no assocated Authorization class' do
-      assert_equal ::Permissions::Default, authorizing_class(::TestDescendant)
+      assert_equal ::Permissions::Default, authorizing_class(::TestParentLess)
     end
     should 'return parent Authorization if specified and none exist for the class' do
-      class ::Permissions::TestBase < Trust::Permissions
-      end
       assert_equal ::Permissions::TestBase, authorizing_class(::TestDescendant)
     end
   end

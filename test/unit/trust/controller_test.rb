@@ -25,12 +25,10 @@
 require 'test_helper'
 
 class Trust::ControllerTest < ActiveSupport::TestCase
-  setup do
-    class Controller < ActionController::Base
-      trustee
-    end
-    class DerivedController < Controller
-    end
+  class Controller < ActionController::Base
+    trustee
+  end
+  class DerivedController < Controller
   end
   context 'class method' do
     should 'instantiate properties' do

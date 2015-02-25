@@ -140,20 +140,20 @@ class Trust::Controller::ResourceTest < ActiveSupport::TestCase
       end
       context 'when found' do
         should 'return object for namespaced resource' do
-          @request.stubs(:symbolized_path_parameters).returns({:name_spaced_resource_person_id => 2 })
+          @request.stubs(:path_parameters).returns({:name_spaced_resource_person_id => 2 })
           NameSpacedResource::Person.expects(:find).with(2).returns(@object = NameSpacedResource::Person.new)
           @res = Trust::Controller::Resource::ParentInfo.new(@resources, {}, @request)
           assert_equal @object, @res.object
         end
         should 'return object for regular resource' do
-          @request.stubs(:symbolized_path_parameters).returns({:child_id => 2 })
+          @request.stubs(:path_parameters).returns({:child_id => 2 })
           Child.expects(:find).with(2).returns(@object = Child.new)
           @res = Trust::Controller::Resource::ParentInfo.new(@resources, {}, @request)
           assert_equal @object, @res.object
         end
         context 'the attributes' do
           setup do
-            @request.stubs(:symbolized_path_parameters).returns({:child_id => 2 })
+            @request.stubs(:path_parameters).returns({:child_id => 2 })
             Child.expects(:find).with(2).returns(@object = Child.new)
             @res = Trust::Controller::Resource::ParentInfo.new(@resources, {:child => 'tie'}, @request)
           end
@@ -173,20 +173,20 @@ class Trust::Controller::ResourceTest < ActiveSupport::TestCase
         end
       end
       should 'return nil for object if not found' do
-        @request.stubs(:symbolized_path_parameters).returns({:child_id => 2 })
+        @request.stubs(:path_parameters).returns({:child_id => 2 })
         Child.expects(:find).with(2).returns(nil)
         @res = Trust::Controller::Resource::ParentInfo.new(@resources, {}, @request)
         assert_nil @res.object
         assert !@res.object?
       end
       should 'return nil for object if not specified' do
-        @request.stubs(:symbolized_path_parameters).returns({})
+        @request.stubs(:path_parameters).returns({})
         @res = Trust::Controller::Resource::ParentInfo.new(@resources, {}, @request)
         assert_nil @res.object
         assert !@res.object?
       end
       should 'return nil for klass when not found' do
-        @request.stubs(:symbolized_path_parameters).returns({})
+        @request.stubs(:path_parameters).returns({})
         @res = Trust::Controller::Resource::ParentInfo.new(@resources, {}, @request)
         assert_nil @res.klass
       end
@@ -196,7 +196,7 @@ class Trust::Controller::ResourceTest < ActiveSupport::TestCase
       setup do
         @request = Object.new
         @resources = [:parent]
-        @request.stubs(:symbolized_path_parameters).returns({:child_id => 2 })
+        @request.stubs(:path_parameters).returns({:child_id => 2 })
         Parent.expects(:find).with(2).returns(@object = Child.new)
         @res = Trust::Controller::Resource::ParentInfo.new(@resources, {}, @request)
       end

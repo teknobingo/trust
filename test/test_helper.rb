@@ -27,6 +27,7 @@ ENV["RAILS_ENV"] = "test"
 
 require File.expand_path("../dummy/config/environment.rb",  __FILE__)
 require "rails/test_help"
+require 'mocha/mini_test'
 
 Rails.backtrace_cleaner.remove_silencers!
 
@@ -40,6 +41,6 @@ end
 
 class ActionController::TestCase
   def login_as(role = :guest)
-    User.current = @controller.send(:current_user=, User.find_or_create_by_name(role.to_s))
+    User.current = @controller.send(:current_user=, User.find_or_create_by(name: role.to_s))
   end
 end

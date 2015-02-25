@@ -25,10 +25,12 @@
 require 'test_helper'
 
 class Trust::PermissionsTest < ActiveSupport::TestCase
+
+  class Fund < Trust::Permissions
+    self.action_aliases[:update] = [:update, :edit]
+  end  
+  
   setup do
-    class Fund < Trust::Permissions
-      self.action_aliases[:update] = [:update, :edit]
-    end
     @base = Fund
   end
   context 'class_attributes' do
@@ -44,6 +46,15 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
     end
   end
 
+  class TestAuth < Trust::Permissions
+  end
+
+  class TestMemberAuth < Trust::Permissions
+  end
+  
+  class TestRoleCan < Trust::Permissions
+  end
+
   context 'class method' do
     context 'can' do
       should 'work without using block' do
@@ -54,10 +65,6 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
       end
     end
     context 'can with role block' do
-      setup do
-        class TestAuth < Trust::Permissions
-        end
-      end
       should 'set permissions correctly' do
         TestAuth.role :tester do
           TestAuth.can :hi
@@ -84,10 +91,6 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
       end
     end
     context 'can with member_role block' do
-      setup do
-        class TestMemberAuth < Trust::Permissions
-        end
-      end
       should 'set permissions correctly' do
         TestMemberAuth.member_role :tester do
           TestMemberAuth.can :hi
@@ -99,10 +102,6 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
       end
     end
     context 'can assigning role wihtout block' do
-      setup do
-        class TestRoleCan < Trust::Permissions
-        end
-      end
       should 'set permissions correctly' do
         TestRoleCan.role :tester, :manager, TestRoleCan.can(:hi, :wink, :if => true)
         expected = {:tester => [[:hi, {:if => true}],[:wink, {:if => true}]], :manager => [[:hi, {:if => true}],[:wink, {:if => true}]]}
@@ -220,18 +219,19 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
     end
   end
   
+  class Account < Trust::Permissions
+    role :tester do
+      can :test_user,  :if => Proc.new { user.name == 'mcgormic' }
+      can :test_action,  :if => lambda { action == :test_action }
+      can :test_klass,   :if => lambda { klass == :klass }
+      can :test_subject, :if => lambda { subject == :subject }
+      can :test_parent,  :if => lambda { parent == :parent }
+      can :test_failure, :if => lambda { failure == :failure }
+    end
+  end
+  
   context 'accessing accessors in Permission instance' do
     setup do
-      class Account < Trust::Permissions
-        role :tester do
-          can :test_user,  :if => Proc.new { user.name == 'mcgormic' }
-          can :test_action,  :if => lambda { action == :test_action }
-          can :test_klass,   :if => lambda { klass == :klass }
-          can :test_subject, :if => lambda { subject == :subject }
-          can :test_parent,  :if => lambda { parent == :parent }
-          can :test_failure, :if => lambda { failure == :failure }
-        end
-      end
       @user = stub(:name => 'mcgormic', :role_symbols => [:tester])
     end
     should 'expose accessors' do
@@ -247,16 +247,47 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
     
   end
 
+
+  class TestBaseAuth < Trust::Permissions
+  end
+  class TestBaseAuth2 < Trust::Permissions
+  end
+  class TestInheritedAuth < TestBaseAuth
+  end
+  class TestOverride < TestBaseAuth2
+  end
+  class TestCannnotArgumentError < Trust::Permissions
+  end
+  class TestBaseAuth3 < Trust::Permissions
+    role :tester, :friend do
+      can :hi, :if => :ho
+      can :wink
+    end
+  end
+  class TestCannot < TestBaseAuth3
+    role :tester, cannot(:wink)
+    role :friend do
+      cannot :hi
+    end
+  end
+  class TestBaseAuth4 < Trust::Permissions
+    role :tester, :friend do
+      can :hi, :if => :ho
+      can :wink
+    end
+  end
+  class TestEnforce < TestBaseAuth4
+    role :tester, can(:wink, :enforce => true, :if => :yo)
+    role :friend do
+      can :hi, :enforce => true, :if => :sure
+    end
+  end
+
   context 'inheritance' do
     should 'clone deeply' do
-      class TestBaseAuth < Trust::Permissions
-      end
       TestBaseAuth.role :tester do
         TestBaseAuth.can :hi, :if => :ho
         TestBaseAuth.can :wink
-      end
-
-      class TestInheritedAuth < TestBaseAuth
       end
       TestInheritedAuth.role :tester do
         TestInheritedAuth.can :foo, :if => :foobar
@@ -268,15 +299,11 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
       assert_equal expect, TestInheritedAuth.permissions
     end
     should 'accumulate inherited permissions' do
-      class TestBaseAuth2 < Trust::Permissions
-      end
       TestBaseAuth2.role :tester do
         TestBaseAuth2.can :hi, :if => :ho
         TestBaseAuth2.can :wink
       end
 
-      class TestOverride < TestBaseAuth2
-      end
       TestOverride.role :tester do
         TestOverride.can :hi, :if => :ha
       end
@@ -286,47 +313,21 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
     
     context 'with cannot' do
       should  'not accept options' do
-        class TestCannnotArgumentError < Trust::Permissions
-        end
         assert_raises ArgumentError do
           TestCannnotArgumentError.cannot :do, :options => true
         end
       end
       should 'revoke permissions' do
-        class TestBaseAuth3 < Trust::Permissions
-          role :tester, :friend do
-            can :hi, :if => :ho
-            can :wink
-          end
-        end
         expect = {:tester => [[:hi, {:if => :ho}],[:wink, {}]], :friend => [[:hi, {:if => :ho}],[:wink, {}]]}
         assert_equal expect, TestBaseAuth3.permissions
-        class TestCannot < TestBaseAuth3
-          role :tester, cannot(:wink)
-          role :friend do
-            cannot :hi
-          end
-        end
         expect = {:tester => [[:hi, {:if => :ho}]], :friend => [[:wink, {}]]}
         assert_equal expect, TestCannot.permissions
       end
     end
     context 'with enforce' do
       should 'override previous cans' do
-        class TestBaseAuth4 < Trust::Permissions
-          role :tester, :friend do
-            can :hi, :if => :ho
-            can :wink
-          end
-        end
         expect = {:tester => [[:hi, {:if => :ho}],[:wink, {}]], :friend => [[:hi, {:if => :ho}],[:wink, {}]]}
         assert_equal expect, TestBaseAuth4.permissions
-        class TestEnforce < TestBaseAuth4
-          role :tester, can(:wink, :enforce => true, :if => :yo)
-          role :friend do
-            can :hi, :enforce => true, :if => :sure
-          end
-        end
         expect = {:tester => [[:hi, {:if => :ho}],[:wink, {:if => :yo}]], :friend => [[:wink, {}],[:hi, {:if => :sure}]]}
         assert_equal expect, TestEnforce.permissions
         # Parent permissions should not be affected

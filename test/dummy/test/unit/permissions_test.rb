@@ -27,7 +27,7 @@ require 'test_helper'
 class PermissionsTest < ActiveSupport::TestCase
   setup do
     def login_as(role)
-      Trust::Authorization.user = @user = User.find_or_create_by_name(role)
+      Trust::Authorization.user = @user = User.find_or_create_by(name: role)
     end
   end
   context 'Client' do

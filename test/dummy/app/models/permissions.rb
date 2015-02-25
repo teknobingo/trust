@@ -47,9 +47,11 @@ module Permissions
   end
   
   class Account < Default
+    require :account
+    permit :name, :client_id
     role :accountant do
-      can :create, :if => :associated_with_client?
-      can :update, :if => :creator?
+      can :create, if: :associated_with_client?
+      can :update, if: :creator?, permit: :name
     end
     role :department_manager, :accountant do
       can :create, :if => lambda { parent && parent.accountant == :superspecial }
@@ -77,9 +79,11 @@ module Permissions
   class Account::Credit < Account
     role :guest do
       can :create, :if => lambda { user.name == 'wife'}
-    end
-    
+    end 
   end
 
+  class User < Default
+    permit :name
+  end
 
 end

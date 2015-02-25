@@ -322,11 +322,11 @@ module Trust
           @as = as
           ([@klass] + @klass.descendants).detect do |c|
             @name = c.to_s.underscore.tr('/','_').to_sym
-            unless @id = request.symbolized_path_parameters["#{@name}_id".to_sym]
+            unless @id = request.path_parameters["#{@name}_id".to_sym]
               # see if name space handling is necessary
               if c.to_s.include?('::')
                 @name = c.to_s.demodulize.underscore.to_sym
-                @id = request.symbolized_path_parameters["#{@name}_id".to_sym]
+                @id = request.path_parameters["#{@name}_id".to_sym]
               end
             end
             @id
