@@ -59,8 +59,19 @@ module Permissions
       parent && parent.is_a?(Client) && parent.operators.find(user.id)
     end
   end
+  
+  class Voucher < Default
+    member_roles :accountant do
+      can :edit, :show, :if => :associated_with_client?
+    end
+    def members_role()
+      user.member_role( subject_or_parent.team )
+    end
+  end
 end
 ```
+
+The members_role can be implemented if a user has multiple roles such as memberships of teams, projects or similar. 
 
 The following attributes will be accessible in a Permissions class:
 

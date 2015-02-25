@@ -112,13 +112,15 @@ module Trust
     include InheritableAttribute
     attr_reader :user, :action, :klass, :subject, :parent
     inheritable_attr :permissions
+    inheritable_attr :member_permissions
     class_attribute :action_aliases, :instance_writer => false, :instance_reader => false
     self.permissions = {}
+    self.member_permissions = {}
     self.action_aliases = {
-      read: [:index, :show],
-      create: [:create, :new],
-      update: [:update, :edit],
-      manage: [:index, :show, :create, :new, :update, :edit, :destroy]
+      # read: [:index, :show],
+      # create: [:create, :new],
+      # update: [:update, :edit],
+      # manage: [:index, :show, :create, :new, :update, :edit, :destroy]
       }
     @@can_expressions = 0
   
@@ -142,19 +144,32 @@ module Trust
   
     # Returns true if the user is authorized to perform the action
     def authorized?
-      authorized = nil
-      user && user.role_symbols.each do |role|
-        (permissions[role] || {}).each do |act, opt|
-          if act == action
-            break if (authorized = opt.any? ? eval_expr(opt) : true)
-          end
-        end
-        break if authorized
-      end
-      authorized
+      trace 'authorized', 0, "@user: #{@user.inspect}, @action: #{@action.inspect}, @klass: #{@klass.inspect}, @subject: #{@subject.inspect}, @parent: #{@parent.inspect}"
+      user && (authorize_by_member_role? || authorize_by_role?)
     end
-  
-  protected
+
+    # Implement this in your permissions class if using membership roles
+    #
+    # One example is that you have teams or projects that have members with role and you want to 
+    # Authorize against that role instead of any of the roles associated with the user directly
+    #
+    # === Example:
+    #
+    #   class Sprint < Trust::Permissions
+    #     member_role :scrum_master, can(:update)
+    #     def members_role()
+    #       @members_role ||= subject.memberships.where(user_id: user.id).first.role_symbol
+    #     end
+    def members_role()
+      {}
+    end
+    
+    # Returns subject if subject is an instance, otherwise parent
+    # 
+    def subject_or_parent
+      (subject.nil? || subject.is_a?(Class)) ? parent : subject
+    end
+  private
     def eval_expr(options) #:nodoc:
       options.collect do |oper, expr|
         res = case expr
@@ -177,7 +192,39 @@ module Trust
         end
       end.all?
     end
-  
+    
+    def authorize_by_role?
+      trace 'authorize_by_role?', 0, "#{user.try(:name)}"
+      user.role_symbols.any? do |role| 
+        trace 'authorize_by_role?', 1, "#{role}"
+        if p = permissions[role]
+          trace 'authorize_by_role?', 2, "permissions: #{p.inspect}"          
+          has_permissions? p
+        end
+      end
+    end
+    
+    # Checks is a member is authorized
+    # You will need to implement members_role in permissions yourself
+    def authorize_by_member_role?
+      m = members_role
+      trace 'authorize_by_member_role?', 0, "#{user.try(:name)}:#{m}"
+      p = member_permissions[m]
+      trace 'authorize_by_role?', 1, "permissions: #{p.inspect}"      
+      p && has_permissions?( p)
+    end
+    
+    def has_permissions?(permissions = {})
+      permissions.any? do |act, opt|
+        act == action && (opt.any? ? eval_expr(opt) : true)
+      end
+    end
+    
+    def trace(method, indent = 0, msg = nil)
+      return unless Trust.log_level == :trace
+      Rails.logger.debug "Trust::Permissions.#{method}: #{"\t" * indent}#{msg}"
+    end
+    
     class << self
       # Assign permissions to one or more roles.
       #
@@ -206,6 +253,26 @@ module Trust
       # The above permits admin and accountant to read accounts.
       #
       def role(*roles, &block)
+        self.permissions = _role(self.permissions, *roles, &block)
+      end
+      alias :roles :role
+      
+      # Assign permissions to one or more roles on a member role.
+      #
+      # You may call member_role or member_roles, they are the same function like 
+      #   +member_role :scrum_master+ or +member_roles :scrum_master, :product_owner+
+      #
+      # When using this feature, your permission class must respond to members_rols, and return only one role
+      #
+      # See {Trust::Permissions.role} for definition
+      # See {Trust::Permissions.members_role} for how to implement this method
+      #
+      def member_role(*roles, &block)
+        self.member_permissions = _role(self.member_permissions, *roles, &block)
+      end
+      alias :member_roles :member_role
+      
+      def _role(existing_permissions, *roles, &block)
         if block_given?
           if @@can_expressions > 0
             @@can_expressions = 0
@@ -228,18 +295,18 @@ module Trust
           @@can_expressions = 0
         end
         roles.flatten.each do |role|
-          self.permissions[role] ||= []
+          existing_permissions[role] ||= []
           if perms[:cannot] && perms[:cannot].size > 0
             perms[:cannot].each do |p|
-              self.permissions[role].delete_if { |perm| perm[0] == p  }
+              existing_permissions[role].delete_if { |perm| perm[0] == p  }
             end
           end
           if perms[:can] && perms[:can].size > 0
-            self.permissions[role] += perms[:can]
+            existing_permissions[role] += perms[:can]
           end
         end
+        existing_permissions
       end
-      alias :roles :role
   
       # Defines permissions
       #

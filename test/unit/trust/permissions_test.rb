@@ -27,17 +27,19 @@ require 'test_helper'
 class Trust::PermissionsTest < ActiveSupport::TestCase
   setup do
     class Fund < Trust::Permissions
+      self.action_aliases[:update] = [:update, :edit]
     end
     @base = Fund
   end
   context 'class_attributes' do
     should 'have default values' do
       assert_equal @base.permissions, {}
+      assert_equal @base.member_permissions, {}
       assert_equal @base.action_aliases, {
-        read: [:index, :show],
-        create: [:create, :new],
+        # read: [:index, :show],
+        # create: [:create, :new],
         update: [:update, :edit],
-        manage: [:index, :show, :create, :new, :update, :edit, :destroy]
+        # manage: [:index, :show, :create, :new, :update, :edit, :destroy]
         }
     end
   end
@@ -68,17 +70,32 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
         # Verify that parent class is not affected
         assert_equal expected, @base.permissions, "#{@base.name} was modified"
         # Verify that aliases are expanded
-        expected = {:tester => [[:hi, {}],[:wink, {}],[:create, {}],[:new, {}]]}
+        expected = {:tester => [[:hi, {}],[:wink, {}],[:create, {}]]}
         TestAuth.role :tester do
           TestAuth.can :create
         end
         assert_equal expected, TestAuth.permissions
         # Verify support for multiple roles
-        expected = {:tester => [[:hi, {}],[:wink, {}],[:create, {}],[:new, {}]], :manager => [[:hi, {}]]}
+        expected = {:tester => [[:hi, {}],[:wink, {}],[:create, {}]], :manager => [[:hi, {}]]}
         TestAuth.role :manager do
           TestAuth.can :hi
         end
         assert_equal expected, TestAuth.permissions
+      end
+    end
+    context 'can with member_role block' do
+      setup do
+        class TestMemberAuth < Trust::Permissions
+        end
+      end
+      should 'set permissions correctly' do
+        TestMemberAuth.member_role :tester do
+          TestMemberAuth.can :hi
+          TestMemberAuth.can :wink
+        end
+        # verfy that permissions are structured correctly
+        expected = {:tester => [[:hi, {}],[:wink, {}]]}
+        assert_equal expected, TestMemberAuth.member_permissions
       end
     end
     context 'can assigning role wihtout block' do
@@ -100,7 +117,7 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
         assert_equal [:update, :edit], @base.send(:expand_aliases, :update)
       end
       should 'expand multiple aliases' do
-        assert_equal [:update, :edit, :create, :new], @base.send(:expand_aliases, [:update, :create])
+        assert_equal [:update, :edit, :create], @base.send(:expand_aliases, [:update, :create])
       end
       should 'return action if there are no aliases' do
         assert_equal [:hi], @base.send(:expand_aliases, :hi)
@@ -155,8 +172,20 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
           returns({:tester => [[:hi, {}],[:wink, {}]]}).then.
           returns({:manager => [[:hi, {}],[:wink, {}]]})
         assert authorized?        
-        assert authorized?
       end
+      should 'delegate to members_role if required' do
+        @user = stub(:role_symbols => [:gurba])
+        @subject.stubs(:user).returns(@user)
+        @base.stubs(:permissions).returns({})
+        assert !authorized?        
+        @base.stubs(:member_permissions).returns({:manager => [[:hi, {}],[:wink, {}]]})
+        assert !authorized?
+        @base.any_instance.stubs(:members_role).returns(:manager)
+        assert authorized?
+        @base.stubs(:member_permissions).returns({})
+        assert !authorized?
+      end
+      
     end
     context 'eval_expr' do
       setup do
