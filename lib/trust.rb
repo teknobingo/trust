@@ -22,6 +22,7 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
+require 'active_support/configurable'
 require 'trust/exceptions'
 require 'trust/inheritable_attribute'
 module Trust
@@ -30,6 +31,11 @@ module Trust
   autoload :Authorization,      'trust/authorization'
   autoload :ActiveModel,        'trust/active_model'
   autoload :Actor,              'trust/actor'
+  
+  include ActiveSupport::Configurable
+  
+  config_accessor :log_level
+  
 end
 require 'trust/controller'
 class ActionController::Base
