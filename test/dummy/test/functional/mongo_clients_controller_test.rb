@@ -26,8 +26,8 @@ require 'test_helper'
 
 class MongoClientsControllerTest < ActionController::TestCase
   setup do
-    @client = MongoClient.create #clients(:one)
     login_as(:system_admin)
+    @client = MongoClient.create #clients(:one)
   end
 
   test "should get index" do

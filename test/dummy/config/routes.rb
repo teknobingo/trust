@@ -30,13 +30,13 @@ Rails.application.routes.draw do
     
   resources :client do
     resources :savings_accounts, :shallow => true
-    resources :accounts
+    resources :accounts, :shallow => false
     namespace :accounts do
       resources :credit, :shallow => true
     end
   end
 
-  resources :mongo_client do
+  resources :mongo_client, :shallow => true do
     resources :mongo_accounts
   end
 

@@ -23,7 +23,7 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 %>
-<%= form_for(@mongo_account, :url => mongo_client_mongo_accounts_path(@mongo_client)) do |f| %>
+<%= form_for(@mongo_account.new_record? ? [@mongo_client,@mongo_account] : @mongo_account) do |f| %>
   <% if @mongo_account.errors.any? %>
     <div id="error_explanation">
       <h2><%= pluralize(@mongo_account.errors.count, "error") %> prohibited this account from being saved:</h2>

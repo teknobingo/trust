@@ -77,8 +77,8 @@ class AccountsController < ApplicationController
   # PUT /clients/1/accounts/1.json
   def update
     respond_to do |format|
-      if @account.update_attributes(params[:account])
-        format.html { redirect_to client_account_path(@account), notice: 'Account was successfully updated.' }
+      if @account.update_attributes(resource.strong_params)
+        format.html { redirect_to client_account_path(@account.client, @account), notice: 'Account was successfully updated.' }
         format.json { head :no_content }
       else
         format.html { render action: "edit" }

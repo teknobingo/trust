@@ -64,7 +64,7 @@ class MongoAccountsController < ApplicationController
   def create
     respond_to do |format|
       if @mongo_account.save
-        format.html { redirect_to mongo_client_mongo_account_path(@mongo_account.mongo_client,@mongo_account), notice: 'Account was successfully created.' }
+        format.html { redirect_to mongo_account_path(@mongo_account), notice: 'Account was successfully created.' }
         format.json { render json: @mongo_account, status: :created, location: @mongo_account }
       else
         format.html { render action: "new" }
@@ -77,8 +77,8 @@ class MongoAccountsController < ApplicationController
   # PUT /clients/1/accounts/1.json
   def update
     respond_to do |format|
-      if @mongo_account.update_attributes(params[:mongo_account])
-        format.html { redirect_to mongo_client_mongo_account_path(@mongo_account), notice: 'Account was successfully updated.' }
+      if @mongo_account.update_attributes(resource.strong_params)
+        format.html { redirect_to mongo_account_path(@mongo_account), notice: 'Account was successfully updated.' }
         format.json { head :no_content }
       else
         format.html { render action: "edit" }
@@ -90,10 +90,11 @@ class MongoAccountsController < ApplicationController
   # DELETE /clients/1/accounts/1
   # DELETE /clients/1/accounts/1.json
   def destroy
+    client_id = @mongo_account.mongo_client
     @mongo_account.destroy
 
     respond_to do |format|
-      format.html { redirect_to mongo_client_mongo_accounts_url }
+      format.html { redirect_to mongo_client_mongo_accounts_path(client_id) }
       format.json { head :no_content }
     end
   end
