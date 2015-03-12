@@ -188,14 +188,24 @@ module Trust
       # This method is triggered as a callback on +before_filter+
       # See {Trust::Controller::Resource} for more information
       def load_resource
-        resource.load
+        if resource.new_action?
+          authorization.preload
+          authorization.instance_loaded resource.load # need to set instance on authorizing object
+        else
+          resource.load
+        end
       end
       
       # Performs the actual access_control.
       #
       # This method is triggered as a callback on +before_filter+
       def access_control
-        Trust::Authorization.authorize!(action_name, resource.instance || resource.klass, resource.parent)
+        authorization.authorize!
+      end
+
+      # maintains access to the authorization object
+      def authorization
+        @authorization ||= Trust::Authorization.new(action_name, resource)
       end
 
       # Tests for current users permissions.

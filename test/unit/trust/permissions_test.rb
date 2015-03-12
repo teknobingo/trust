@@ -27,11 +27,15 @@ require 'test_helper'
 class Trust::PermissionsTest < ActiveSupport::TestCase
 
   class Fund < Trust::Permissions
-    self.action_aliases[:update] = [:update, :edit]
   end  
   
   setup do
     @base = Fund
+    @action_aliases = Trust::Permissions.action_aliases
+    Trust::Permissions.action_aliases[:update] = [:update, :edit]
+  end
+  teardown do
+    Trust::Permissions.action_aliases = @action_aliases
   end
   context 'class_attributes' do
     should 'have default values' do
@@ -77,7 +81,7 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
         # Verify that parent class is not affected
         assert_equal expected, @base.permissions, "#{@base.name} was modified"
         # Verify that aliases are expanded
-        expected = {:tester => [[:hi, {}],[:wink, {}],[:create, {}]]}
+        expected = {:tester=>[[:hi, {}], [:wink, {}], [:create, {}]]}
         TestAuth.role :tester do
           TestAuth.can :create
         end
@@ -141,13 +145,19 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
   
   context 'instance method' do
     setup do
-      @subject = @base.new(:user, :wink, :klass, :subject, :parent)
+      @subject = @base.new(:user, :wink, @base, :subject, :parent)
     end
     context 'authorized?' do
       setup do
         def authorized?
           @subject.send(:authorized?)
         end
+      end
+      should 'return params_handler' do
+        @user = stub(:role_symbols => [:manager])
+        @base.expects(:permissions).returns({:manager => [ [:wink, {permit: [:a, :b]}] ]})
+        @subject.stubs(:user).returns(@user)
+        assert_equal ({require: :trust_permissions_test_fund, permit: [:a, :b]}), authorized?
       end
       should 'by default be false' do
         @user = stub(:role_symbols => [])
@@ -170,7 +180,7 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
         @base.stubs(:permissions).
           returns({:tester => [[:hi, {}],[:wink, {}]]}).then.
           returns({:manager => [[:hi, {}],[:wink, {}]]})
-        assert authorized?        
+        assert authorized?
       end
       should 'delegate to members_role if required' do
         @user = stub(:role_symbols => [:gurba])
@@ -183,8 +193,7 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
         assert authorized?
         @base.stubs(:member_permissions).returns({})
         assert !authorized?
-      end
-      
+      end      
     end
     context 'eval_expr' do
       setup do
@@ -201,7 +210,7 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
         assert !eval_expr(:if => true, :unless => true)
         assert !eval_expr(:if => false, :unless => true)
         assert !eval_expr(:if => true, :unless => true)
-        assert eval_expr(:if => true, :unless => false)
+        assert_equal ({}), eval_expr(:if => true, :unless => false)
       end
       should 'support the following conditions' do
         assert eval_expr(:if => true)
@@ -209,12 +218,40 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
       end
       should 'support symbol expression' do
         @subject.expects(:hello).returns(true)
-        assert eval_expr(:if => :hello)
+        assert_equal ({}), eval_expr(:if => :hello)
       end
       should 'support proc expression' do
-        assert eval_expr(:if => Proc.new { true })
-        assert eval_expr(:if => lambda { true })
-        assert eval_expr(:unless => lambda { false })
+        assert_equal ({}), eval_expr(:if => Proc.new { true })
+        assert_equal ({}), eval_expr(:if => lambda { true })
+        assert_equal ({}), eval_expr(:unless => lambda { false })
+      end
+      context 'preloaded' do
+        should 'parse well known expressions' do
+          assert_equal ({require: :x, permit: [:name, :address]}), eval_expr(require: :x, permit: [:name, :address])
+        end
+        should 'support preload? method' do
+          @subject.instance_variable_set(:@preload, true)
+          assert !eval_expr(require: :x, permit: [:name, :address], unless: :preload?)
+          assert ({require: :x, permit: [:name, :address]}), eval_expr(require: :x, permit: [:name, :address], if: :preload?)
+        end
+      end
+    end
+    context 'preloading' do
+      should 'set preload attribute' do
+        @var = nil
+        @subject.expects(:authorized?).with() {  @var = @subject.preload?  }
+        assert !@var
+        @subject.preload
+        assert @var
+      end
+      should 'allow instance writer to subject' do
+        @subject.subject = :new_subject
+        assert_equal :new_subject, @subject.subject
+      end
+    end
+    context 'route key' do
+      should 'convert class to names appropriately' do
+        assert_equal :trust_permissions_test_account, @subject.send(:route_key, Account)
       end
     end
   end
@@ -223,7 +260,7 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
     role :tester do
       can :test_user,  :if => Proc.new { user.name == 'mcgormic' }
       can :test_action,  :if => lambda { action == :test_action }
-      can :test_klass,   :if => lambda { klass == :klass }
+      can :test_klass,   :if => lambda { klass == Account }
       can :test_subject, :if => lambda { subject == :subject }
       can :test_parent,  :if => lambda { parent == :parent }
       can :test_failure, :if => lambda { failure == :failure }
@@ -236,7 +273,7 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
     end
     should 'expose accessors' do
       %w(user action klass subject parent).each do |attr|
-        @perm = Account.new(@user, :"test_#{attr}", :klass, :subject, :parent)
+        @perm = Account.new(@user, :"test_#{attr}", Account, :subject, :parent)
         assert @perm.authorized?, "test_#{attr} failed"
       end
       assert_raises NameError do
@@ -244,7 +281,6 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
         assert @perm.authorized?
       end
     end
-    
   end
 
 
@@ -336,4 +372,65 @@ class Trust::PermissionsTest < ActiveSupport::TestCase
       end
     end
   end
+  
+  
+  class TestPermit < Trust::Permissions
+    require :entity
+    permit :aha, :joho
+    role :tester do
+      can :wink, require: :special, permit: [:no, :way]
+      can :blink, require: :somewhat_special
+      can :wave, permit: [:hands]
+    end
+  end
+  
+  class TestInheritedPermit < TestPermit
+  end
+  
+  context 'params handler storage' do
+    setup do
+      @ta = TestPermit.new(:user, :wink, TestPermit, :subject, :parent)
+      @user = stub(:role_symbols => [:tester])
+    end
+    context 'of require' do
+      should 'default unless specified' do
+        TestPermit.entity_required = nil
+        ph = @ta.send(:params_handler_default, {})
+        assert_equal :trust_permissions_test_test_permit, ph[:require]
+        TestPermit.entity_required = :entity
+      end
+      should 'store default' do
+        assert_equal :entity, @ta.entity_required
+      end
+      should 'inherit default' do
+        ta = TestInheritedPermit.new(:user, :wink, TestInheritedPermit, :subject, :parent)
+        assert_equal :entity, ta.entity_required
+      end
+      should 'override on action' do
+        ta = TestInheritedPermit.new(@user, :wave, TestInheritedPermit, :subject, :parent)
+        expected = {require: :entity, permit: [:hands]}
+        assert_equal expected, ta.authorized?
+      end
+    end
+    context 'of permit' do
+      should 'store default' do
+        assert_equal [:aha, :joho], @ta.entity_attributes
+      end
+      should 'inherit default' do
+        ta = TestInheritedPermit.new(:user, :wink, TestInheritedPermit, :subject, :parent)
+        assert_equal [:aha, :joho], ta.entity_attributes
+      end
+      should 'override on action' do
+        ta = TestInheritedPermit.new(@user, :blink, TestInheritedPermit, :subject, :parent)
+        expected = {require: :somewhat_special, permit: [:aha, :joho]}
+        assert_equal expected, ta.authorized?
+      end
+    end
+    should 'override on action' do
+      ta = TestInheritedPermit.new(@user, :wink, TestInheritedPermit, :subject, :parent)
+      expected = {require: :special, permit: [:no, :way]}
+      assert_equal expected, ta.authorized?
+    end
+  end
+  
 end

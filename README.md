@@ -60,12 +60,25 @@ module Permissions
     end
   end
   
+  
   class Voucher < Default
     member_roles :accountant do
       can :edit, :show, :if => :associated_with_client?
     end
     def members_role()
       user.member_role( subject_or_parent.team )
+    end
+  end
+
+  # Rails 4 - defininitions for  strong_params
+  class Invoice < Default
+    require :invoice          # requires :invoice hash. This is set by default, so in practice not necessary to define
+    permit :date, :due_days   # permitted parameters
+    role :accountant do
+      can :edit, :show, :if => :associated_with_client?
+    end
+    role :department_manager, :accountant do
+      can :new, :create, :if => lambda { parent }, permit: [:date, :due_days, :discount]
     end
   end
 end
@@ -224,6 +237,14 @@ resource.parent   => accesses the parent instance
 You can even assign these if you like. The resource is also exposed as helper, so you can access it in views.
 For simplicity we have also exposed an ```instances``` accessor that you can assign when you have a multirecord result,
 such as for index action.
+
+Accessing strong_params for updates (rails 4)
+
+``` Ruby
+  @invoice.update_attributes(resource.strong_params)
+  # or
+  resource.instance.update_attributes(resource.strong_params)
+```
 
 ## Overriding defaults
 

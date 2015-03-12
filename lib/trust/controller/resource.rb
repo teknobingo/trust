@@ -44,10 +44,11 @@ module Trust
       delegate :logger, :to => Rails
       attr_reader :properties, :params, :action
       attr_reader :info, :parent_info, :relation
+      attr_reader :params_handler
 
       def initialize(controller, properties, action_name, params, request) # nodoc
         @action = action_name.to_sym
-        
+        @params_handler = {}
         @controller, @properties, @params = controller, properties, params
         @info = extract_resource_info(properties.model, params)
         if properties.has_associations?
@@ -73,7 +74,7 @@ module Trust
         @controller.instance_variable_set(:"@#{instance_name}", instance)
       end      
       
-      # Returns the parameters for the instance
+      # Returns the parameters for the instance (Rails 3)
       #
       # ==== Example
       #
@@ -82,15 +83,47 @@ module Trust
       def instance_params
         info.params
       end
+      
+      # Returns strong parameters for the instance (Rails 4)
+      # This call will take advantage of the spesified in permissions.
+      # If no such permissions is defined, it will fall back to instance_params
+      #
+      # ==== Example
+      #
+      #     # assume the following permissions defined
+      #     class Account < Default
+      #       require :account
+      #       permit :number, :amount
+      #     end
+      #
+      #     # in AccountsController
+      #     resource.strong_params  # same as params.require(:account).permit(:number, :amount)
+      #
+      #     # as a new action
+      #     resource.strong_params(true)  # same as params.fetch(:account, {}).permit(:number, :amount)
+      # 
+      def strong_params(new_action = new_action?)
+        if params_handler.size > 0
+          if params_handler[:require]
+            new_action ? 
+              params.fetch(params_handler[:require], {}).permit(params_handler[:permit]) : 
+              params.require(params_handler[:require]).permit(params_handler[:permit])
+          else
+            params.permit(params_handler[:permit])
+          end
+        else
+          instance_params
+        end
+      end
 
       # Returns the parents instance variable when you use +belongs_to+ for nested routes
       def parent
-        @controller.instance_variable_get(:"@#{parent_name}")
+        parent_name && @controller.instance_variable_get(:"@#{parent_name}")
       end
       
       # Sets the parent instance variable
       def parent=(instance)
-        @controller.instance_variable_set(:"@#{parent_name}", instance)
+        @controller.instance_variable_set(:"@#{parent_name}", instance) if parent_name
       end
 
       # Returns the cinstance variable for ollection
@@ -124,6 +157,10 @@ module Trust
         @info.collection(@parent_info, instance)
       end
       
+      # true if action is a new action
+      def new_action?
+        @new_action ||= properties.new_actions.include?(action)
+      end
       
       # Loads the resource
       #
@@ -134,10 +171,10 @@ module Trust
       # parent relation if found.
       def load
         self.parent = parent_info.object if parent_info
-        if properties.new_actions.include?(action)
+        if new_action?
 #          logger.debug "Trust.load: Setting new: class: #{klass} info.params: #{info.params.inspect}"
-          self.instance ||= relation.new(info.params)
-          @controller.send(:build, action) if @controller.respond_to?(:build,true)
+          self.instance ||= relation.new(strong_params(true))
+          @controller.send(:build, action) if @controller.respond_to?(:build, true)
         elsif properties.member_actions.include?(action)
 #          logger.debug "Trust.load: Finding parent: #{parent.inspect}, relation: #{relation.inspect}"
           self.instance ||= relation.find(params[:id] || params["#{relation.name.underscore}_id".to_sym])
@@ -156,6 +193,16 @@ module Trust
       def instance_name
         info.name
       end
+      
+      # Assigns the handler for safe parameters
+      #
+      # This is normally set by the controller during authorization
+      # If you want to set this your self it should
+      def params_handler=(handler)
+        @params_handler = handler
+      end
+      
+      
       
       # Returns the plural name of the instance for the resource
       #

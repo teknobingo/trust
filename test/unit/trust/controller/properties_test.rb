@@ -97,6 +97,11 @@ class Trust::Controller::PropertiesTest < ActiveSupport::TestCase
       assert_equal [:show, :edit, :update, :destroy], @properties.member_actions
       assert_equal [:index], @properties.collection_actions
     end
+    should 'discover new_action?' do
+      assert @properties.new_action?( :new)
+      assert @properties.new_action?( 'new')
+      assert !@properties.new_action?( :show)
+    end
   end
   
   context 'belongs_to' do

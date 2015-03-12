@@ -109,13 +109,20 @@ module Trust
   #
   class Permissions
     
+    class SubjectInaccessible < StandardError; end
+    
     include InheritableAttribute
-    attr_reader :user, :action, :klass, :subject, :parent
+    attr_reader :user, :action, :klass, :parent
+    attr_accessor :subject
     inheritable_attr :permissions
     inheritable_attr :member_permissions
+    inheritable_attr :entity_required    
+    inheritable_attr :entity_attributes    
     class_attribute :action_aliases, :instance_writer => false, :instance_reader => false
     self.permissions = {}
     self.member_permissions = {}
+    self.entity_required = nil      # for require
+    self.entity_attributes = []     # for permit
     self.action_aliases = {
       # read: [:index, :show],
       # create: [:create, :new],
@@ -142,10 +149,22 @@ module Trust
       @user, @action, @klass, @subject, @parent = user, action, klass, subject, parent
     end
   
-    # Returns true if the user is authorized to perform the action
+    # Returns params_handler if the user is authorized to perform the action
+    #
+    # The handler contains information used by the resource on retrieing parametes later
     def authorized?
-      trace 'authorized', 0, "@user: #{@user.inspect}, @action: #{@action.inspect}, @klass: #{@klass.inspect}, @subject: #{@subject.inspect}, @parent: #{@parent.inspect}"
-      user && (authorize_by_member_role? || authorize_by_role?)
+      trace 'authorized?', 0, "@user: #{@user.inspect}, @action: #{@action.inspect}, @klass: #{@klass.inspect}, @subject: #{@subject.inspect}, @parent: #{@parent.inspect}"
+      if params_handler = (user && (permission_by_member_role || permission_by_role))
+        params_handler = params_handler_default(params_handler)
+      end
+      params_handler
+    end
+
+    def preload
+      @preload = true
+      params_handler = authorized? || {}
+      @preload = false
+      params_handler
     end
 
     # Implement this in your permissions class if using membership roles
@@ -167,13 +186,40 @@ module Trust
     # Returns subject if subject is an instance, otherwise parent
     # 
     def subject_or_parent
-      (subject.nil? || subject.is_a?(Class)) ? parent : subject
+      (@subject.nil? || subject.is_a?(Class)) ? parent : subject
     end
+    
+    def subject
+      raise SubjectInaccessible, 'You cannot access subject when declaring require or permit for new_actions. You may test with :preload?' if @preload
+      @subject
+    end
+    
+    # returns true if permissions are currently being preloaded
+    # In new_actions, the framework must load require and permit in order to set permitted variables before the authorization can be
+    # evaluated. At that time, the subject is not accessible by permissions.
+    # It is not mandatory to use this, but you may test on this in yor permissions file if necessary.
+    #
+    # === Example:
+    #
+    #   module Permissions
+    #     class Account < Trust::Permissions
+    #       role :admin, :accountant do 
+    #         can :create, :new, require: :account, permit: [:number, :amount, :comment], if: :preload?
+    #         can :create, :new, require: :account, permit: [:number, :amount, :comment], if: :valid_amount?, unless: :preload?
+    #       end
+    #     end
+    #   end
+    def preload?
+      @preload
+    end
+    
   private
     def eval_expr(options) #:nodoc:
-      options.collect do |oper, expr|
+      params_handler = {}
+      found = options.collect do |oper, expr|
         res = case expr
-        when Symbol then send(expr)
+        when Symbol
+          [:if, :unless].include?(oper) ? send(expr) : expr
         when Proc
           if expr.lambda?
             instance_exec &expr
@@ -187,45 +233,84 @@ module Trust
         case oper
         when :if then res
         when :unless then !res
+        when :require
+          params_handler[:require] = res
+          true
+        when :permit
+          params_handler[:permit] = Array.wrap(res)
+          true
         else
           raise UnsupportedCondition, expr.inspect
         end
       end.all?
+      found && params_handler
     end
     
-    def authorize_by_role?
+    def permission_by_role
+      auth = nil
       trace 'authorize_by_role?', 0, "#{user.try(:name)}"
       user.role_symbols.any? do |role| 
         trace 'authorize_by_role?', 1, "#{role}"
         if p = permissions[role]
           trace 'authorize_by_role?', 2, "permissions: #{p.inspect}"          
-          has_permissions? p
+          auth = authorization(p)
         end
       end
+      auth
     end
     
     # Checks is a member is authorized
     # You will need to implement members_role in permissions yourself
-    def authorize_by_member_role?
+    def permission_by_member_role
       m = members_role
       trace 'authorize_by_member_role?', 0, "#{user.try(:name)}:#{m}"
       p = member_permissions[m]
       trace 'authorize_by_role?', 1, "permissions: #{p.inspect}"      
-      p && has_permissions?( p)
+      p && authorization(p)
     end
     
-    def has_permissions?(permissions = {})
+    def authorization(permissions = {})
+      auth = nil
       permissions.any? do |act, opt|
-        act == action && (opt.any? ? eval_expr(opt) : true)
+        auth = (opt.any? ? eval_expr(opt) : {}) if act == action
       end
+      auth
     end
-    
+
+    # sets default values for params_handler if keys does not exist.
+    # note: if keys exists, they can be nil, and they will not be set to default
+    def params_handler_default(params_handler)
+      params_handler[:require] = (self.class.entity_required || route_key(@klass)) unless params_handler.has_key?(:require)
+      params_handler[:permit] = self.class.entity_attributes unless params_handler.has_key?(:permit)
+      params_handler
+    end
+
+    def route_key(klass)
+      klass.name.to_s.underscore.tr('/','_').to_sym
+    end
+
     def trace(method, indent = 0, msg = nil)
       return unless Trust.log_level == :trace
       Rails.logger.debug "Trust::Permissions.#{method}: #{"\t" * indent}#{msg}"
     end
     
     class << self
+      # Assign default requirement for whitelisting paremeters
+      #
+      # See {ActionController::Parameters.require} for how this works in Rails
+      # 
+      def require(entity)
+        self.entity_required = entity
+      end
+      
+      # Assign default permissions for whitelisting paremeter attributes
+      #
+      # See {ActionController::Parameters.permit} for how this works in Rails
+      # 
+      def permit(*attrs)
+        self.entity_attributes = attrs.dup
+      end
+      
       # Assign permissions to one or more roles.
       #
       # You may call role or roles, they are the same function like +role :admin+ or +roles :admin, :accountant+

@@ -83,6 +83,10 @@ module Trust
         model.to_s.classify.constantize
       end
       
+      
+      def new_action?(action)
+        new_actions.include? action.to_sym
+      end
       # Specify associated resources (nested resources)
       #
       # === Example

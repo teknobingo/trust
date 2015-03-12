@@ -100,30 +100,40 @@ class Trust::ControllerTest < ActiveSupport::TestCase
       Trust::Authorization.expects(:user=).with(user)
       @controller.set_user
     end
-    should 'load resource' do
-      @controller.expects(:resource).returns(stub(:load => true))
-      @controller.load_resource
+    context 'load_resource' do
+      setup do
+        @authorization = stub('authorization')
+        @controller.stubs(:authorization).returns(@authorization)
+        @controller.stubs(:params).returns({})
+        @controller.stubs(:request).returns(stub('request', params: {}))
+      end
+      should 'preload authorizations upon new actions' do
+        @controller.expects(:action_name).returns('new')
+        @authorization.expects(:preload)
+        @controller.resource.expects(:load).returns(:the_instance)
+        @authorization.expects(:instance_loaded).with(:the_instance)
+        @controller.load_resource
+      end
+      should 'just load existing resources' do
+        @controller.expects(:action_name).returns('index')
+        @controller.resource.expects(:load).returns(:the_instance)
+        @controller.load_resource
+      end
     end
     should 'expose resource as helper' do
       assert @controller.class._helper_methods.include?(:resource)
     end
+    should 'initialize authorization object properly' do
+      @controller.instance_variable_set :@authorization, nil
+      @controller.expects(:resource).returns(:the_resource)
+      @controller.expects(:action_name).returns('index')
+      Trust::Authorization.expects(:new).with('index', :the_resource).returns(:an_authorization)
+      assert_equal :an_authorization, @controller.authorization
+      assert_equal :an_authorization, @controller.instance_variable_get( :@authorization)
+    end
     should 'provide access control' do
-      resource = stub('resource')
-      instance = stub('resource instance')
-      klass    = stub('resource klass')
-      parent   = stub('resource parent')
-
-      resource.expects(:instance).returns(instance)
-      resource.expects(:parent).returns(parent)
-      @controller.expects(:resource).returns(resource).twice
-      Trust::Authorization.expects(:authorize!).with(nil,instance,parent)
-      @controller.access_control
-
-      resource.expects(:instance).returns(nil)
-      resource.expects(:parent).returns(parent)
-      resource.expects(:klass).returns(klass)
-      @controller.expects(:resource).returns(resource).times(3)
-      Trust::Authorization.expects(:authorize!).with(nil,klass,parent)
+      @controller.stubs(:authorization).returns(stub('authorization'))
+      @controller.authorization.expects(:authorize!)
       @controller.access_control
     end
     context 'can?' do

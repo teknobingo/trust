@@ -268,12 +268,12 @@ class Trust::Controller::ResourceTest < ActiveSupport::TestCase
         assert @resource.instance.is_a?(Child)
       end
     end
-    context 'Member actions' do
+    context 'Actions' do
       setup do
         Trust::Controller::Resource.any_instance.expects(:extract_resource_info).with('child', { :id => 1 }).returns(@resource_info)
         Trust::Controller::Resource.any_instance.expects(:extract_parent_info).with({:parent => nil}, { :id => 1 }, @request).returns(@parent_info)
       end
-      should 'load as expected' do
+      should 'load member as expected' do
         @resource = Trust::Controller::Resource.new(@controller, @properties, 'member',{ :id => 1 }, @request)
         @properties.actions :member => [:member]
         @resource_info.stubs(:params).returns({})
@@ -284,6 +284,10 @@ class Trust::Controller::ResourceTest < ActiveSupport::TestCase
         assert_equal 6, @resource.parent
         assert @controller.instance_variable_get(:@child).is_a?(Child)
         assert @resource.instance.is_a?(Child)
+      end
+      should 'discovered new_action? as a method' do
+        @resource = Trust::Controller::Resource.new(@controller, @properties, 'new',{ :id => 1 }, @request)
+        assert @resource.new_action?
       end
     end
     context 'Nested resources' do
