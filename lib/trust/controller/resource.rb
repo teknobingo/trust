@@ -116,6 +116,12 @@ module Trust
         end
       end
 
+      if Rails.version.split('.')[0].to_i < 4
+        def strong_params(new_action = new_action?)
+          instance_params
+        end
+      end
+
       # Returns the parents instance variable when you use +belongs_to+ for nested routes
       def parent
         parent_name && @controller.instance_variable_get(:"@#{parent_name}")
@@ -173,7 +179,7 @@ module Trust
         self.parent = parent_info.object if parent_info
         if new_action?
 #          logger.debug "Trust.load: Setting new: class: #{klass} info.params: #{info.params.inspect}"
-          self.instance ||= relation.new(strong_params(true))
+          self.instance ||= relation.new(strong_params)
           @controller.send(:build, action) if @controller.respond_to?(:build, true)
         elsif properties.member_actions.include?(action)
 #          logger.debug "Trust.load: Finding parent: #{parent.inspect}, relation: #{relation.inspect}"

@@ -2,8 +2,8 @@ PATH
   remote: .
   specs:
     trust (1.0.0)
-      activesupport (>= 4.0.0)
-      rails (>= 4.0.0)
+      activemodel (>= 3.0.0)
+      activesupport (>= 3.0.0)
 
 GEM
   remote: http://rubygems.org/
@@ -139,6 +139,7 @@ DEPENDENCIES
   jquery-rails
   mocha
   mongoid (~> 4.0)
+  rails (>= 4.2.0)
   shoulda
   sqlite3
   trust!
