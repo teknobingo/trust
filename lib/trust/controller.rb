@@ -98,7 +98,7 @@ module Trust
           set_user *args
           load_resource *args
           access_control *args
-          helper_method :can?, :resource
+          helper_method :can?, :resource, :resource?
         end
       end
       
@@ -183,6 +183,10 @@ module Trust
         @resource ||= Trust::Controller::Resource.new(self, self.class.properties, action_name, params, request)
       end
       
+      # Returns true if resource has been loaded
+      def resource?
+        !@resource.nil?
+      end
       # Loads the resource which basically means loading the instance and eventual parent defined through +belongs_to+
       #
       # This method is triggered as a callback on +before_filter+
