@@ -154,7 +154,7 @@ module Trust
     # The handler contains information used by the resource on retrieing parametes later
     def authorized?
       trace 'authorized?', 0, "@user: #{@user.inspect}, @action: #{@action.inspect}, @klass: #{@klass.inspect}, @subject: #{@subject.inspect}, @parent: #{@parent.inspect}"
-      if params_handler = (user && (permission_by_member_role || permission_by_role))
+      if params_handler = (user && (permission_by_role || permission_by_member_role))
         params_handler = params_handler_default(params_handler)
       end
       params_handler
