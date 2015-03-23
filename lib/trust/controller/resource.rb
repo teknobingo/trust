@@ -53,6 +53,7 @@ module Trust
         @info = extract_resource_info(properties.model, params)
         if properties.has_associations?
           @parent_info = extract_parent_info(properties.associations, params, request)
+          self.parent = parent_info.object if parent_info
         end
         @relation = @info.relation(@parent_info)
       end
@@ -176,9 +177,8 @@ module Trust
       # If using nested resources and +belongs_to+ has been declared in the controller it will use the 
       # parent relation if found.
       def load
-        self.parent = parent_info.object if parent_info
         if new_action?
-#          logger.debug "Trust.load: Setting new: class: #{klass} info.params: #{info.params.inspect}"
+#         logger.debug "Trust.load: Setting new: class: #{klass} strong_params: #{strong_params.inspect}"
           self.instance ||= relation.new(strong_params)
           @controller.send(:build, action) if @controller.respond_to?(:build, true)
         elsif properties.member_actions.include?(action)
