@@ -83,9 +83,17 @@ module Trust
         model.to_s.classify.constantize
       end
       
-      
+      # => true if action is a new_action
       def new_action?(action)
         new_actions.include? action.to_sym
+      end
+      # => true if action is a collection_action
+      def collection_action?(action)
+        collection_actions.include? action.to_sym
+      end
+      # => true if action is a member_action
+      def member_action?(action)
+        member_actions.include? action.to_sym
       end
       # Specify associated resources (nested resources)
       #

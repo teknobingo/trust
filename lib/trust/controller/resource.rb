@@ -164,9 +164,24 @@ module Trust
         @info.collection(@parent_info, instance)
       end
       
+      # true if action is a collection action
+      def collection_action?
+        @collection_action ||= properties.collection_action?(action)
+      end
+      
+      # true if action is a collection action
+      def member_action?
+        @member_action ||= properties.member_action?(action)
+      end
+      
+      # Returns a nested resource if parent is set
+      def nested
+        parent ? [parent, instance] : [instance]
+      end
+      
       # true if action is a new action
       def new_action?
-        @new_action ||= properties.new_actions.include?(action)
+        @new_action ||= properties.new_action?(action)
       end
       
       # Loads the resource

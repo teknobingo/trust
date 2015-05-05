@@ -252,6 +252,14 @@ class Trust::Controller::ResourceTest < ActiveSupport::TestCase
         @resource.expects(:instance).returns(2)
         assert_equal 2, @resource.instantiated
       end
+      should 'provide access to nested' do
+        @resource.expects(:parent).twice.returns(:parent)
+        @resource.expects(:instance).returns(:instance)
+        assert_equal [:parent, :instance], @resource.nested
+        @resource.expects(:parent).returns(nil)
+        @resource.expects(:instance).returns(:instance)
+        assert_equal :instance, *@resource.nested
+      end
       should 'provide collection' do
         @resource_info.expects(:collection).with(@parent_info, nil).returns(1)
         assert_equal 1, @resource.collection
@@ -284,6 +292,14 @@ class Trust::Controller::ResourceTest < ActiveSupport::TestCase
         assert_equal 6, @resource.parent
         assert @controller.instance_variable_get(:@child).is_a?(Child)
         assert @resource.instance.is_a?(Child)
+      end
+      should 'discovered collection_action? as a method' do
+        @resource = Trust::Controller::Resource.new(@controller, @properties, 'index',{ :id => 1 }, @request)
+        assert @resource.collection_action?
+      end
+      should 'discovered member_action? as a method' do
+        @resource = Trust::Controller::Resource.new(@controller, @properties, 'show',{ :id => 1 }, @request)
+        assert @resource.member_action?
       end
       should 'discovered new_action? as a method' do
         @resource = Trust::Controller::Resource.new(@controller, @properties, 'new',{ :id => 1 }, @request)

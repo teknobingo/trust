@@ -102,6 +102,16 @@ class Trust::Controller::PropertiesTest < ActiveSupport::TestCase
       assert @properties.new_action?( 'new')
       assert !@properties.new_action?( :show)
     end
+    should 'discover collection_action?' do
+      assert @properties.collection_action?( :index)
+      assert @properties.collection_action?( 'index')
+      assert !@properties.collection_action?( :show)
+    end
+    should 'discover member_action?' do
+      assert @properties.member_action?( :show)
+      assert @properties.member_action?( 'show')
+      assert !@properties.member_action?( :index)
+    end
   end
   
   context 'belongs_to' do
