@@ -274,6 +274,7 @@ module Trust
       permissions.any? do |act, opt|
         auth = (opt.any? ? eval_expr(opt) : {}) if act == action
       end
+      trace( 'authorization', 2, "got permission!") if auth
       auth
     end
 
@@ -291,7 +292,7 @@ module Trust
 
     def trace(method, indent = 0, msg = nil)
       return unless Trust.log_level == :trace
-      Rails.logger.debug "Trust::Permissions.#{method}: #{"\t" * indent}#{msg}"
+      Rails.logger.debug "#{self.class.name}.#{method}: #{"\t" * indent}#{msg}"
     end
     
     class << self

@@ -36,6 +36,9 @@ module Trust
   
   config_accessor :log_level
   
+  def self.rails_generation
+    @@__generation ||= Rails.version.split('.')[0].to_i
+  end
 end
 require 'trust/controller'
 class ActionController::Base

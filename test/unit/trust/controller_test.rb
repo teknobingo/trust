@@ -30,15 +30,20 @@ class Trust::ControllerTest < ActiveSupport::TestCase
   end
   class DerivedController < Controller
   end
+  
+  setup do
+    @filter_keyword = Trust.rails_generation < 4 ? :before_filter : :before_action
+  end
+  
   context 'class method' do
     should 'instantiate properties' do
       assert_kind_of Trust::Controller::Properties, Controller.properties
     end
     should 'trustee set filers' do
       options = {:hello => :there}
-      Controller.expects(:before_filter).with(:set_user, options)
-      Controller.expects(:before_filter).with(:load_resource, options)
-      Controller.expects(:before_filter).with(:access_control, options)
+      Controller.expects(@filter_keyword).with(:set_user, options)
+      Controller.expects(@filter_keyword).with(:load_resource, options)
+      Controller.expects(@filter_keyword).with(:access_control, options)
       Controller.trustee options
     end
     should 'delegate to resource' do
@@ -62,29 +67,29 @@ class Trust::ControllerTest < ActiveSupport::TestCase
     
     context '_filter_setting' do
       should 'setup correct instance method callback' do
-        Controller.expects(:skip_before_filter).with(:access_control).times(3)
-        Controller.expects(:before_filter).with(:access_control,{})
+        Controller.expects(:"skip_#{@filter_keyword}").with(:access_control).times(3)
+        Controller.expects(@filter_keyword).with(:access_control,{})
         Controller.access_control
-        Controller.expects(:before_filter).with(:access_control,{:only => :index})
+        Controller.expects(@filter_keyword).with(:access_control,{:only => :index})
         Controller.access_control :only => :index
-        Controller.expects(:before_filter).never
+        Controller.expects(@filter_keyword).never
         Controller.access_control :off
       end
       should 'only set filters that are not off' do
         options = {:hello => :there, :set_user => :off}
-        Controller.expects(:before_filter).with(:set_user).never
-        Controller.expects(:before_filter).with(:load_resource, options)
-        Controller.expects(:before_filter).with(:access_control, options)
+        Controller.expects(@filter_keyword).with(:set_user).never
+        Controller.expects(@filter_keyword).with(:load_resource, options)
+        Controller.expects(@filter_keyword).with(:access_control, options)
         Controller.trustee options
         options = {:hello => :there, :load_resource => :off}
-        Controller.expects(:before_filter).with(:set_user, options)
-        Controller.expects(:before_filter).with(:load_resource).never
-        Controller.expects(:before_filter).with(:access_control, options)
+        Controller.expects(@filter_keyword).with(:set_user, options)
+        Controller.expects(@filter_keyword).with(:load_resource).never
+        Controller.expects(@filter_keyword).with(:access_control, options)
         Controller.trustee options
         options = {:hello => :there, :access_control => :off}
-        Controller.expects(:before_filter).with(:set_user, options)
-        Controller.expects(:before_filter).with(:load_resource, options)
-        Controller.expects(:before_filter).with(:access_control).never
+        Controller.expects(@filter_keyword).with(:set_user, options)
+        Controller.expects(@filter_keyword).with(:load_resource, options)
+        Controller.expects(@filter_keyword).with(:access_control).never
         Controller.trustee options
       end
     end

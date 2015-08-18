@@ -117,7 +117,7 @@ module Trust
         end
       end
 
-      if Rails.version.split('.')[0].to_i < 4
+      if Trust.rails_generation < 4
         def strong_params(new_action = new_action?)
           instance_params
         end

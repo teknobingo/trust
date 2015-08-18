@@ -136,12 +136,22 @@ module Trust
       end
       
     private
-      def _filter_setting(method, *args)
-        options = args.extract_options!
-        skip_before_filter method
-        unless args.include? :off or options[method] == :off
-          before_filter method, options
+      if Trust.rails_generation < 4
+        def _filter_setting(method, *args)
+          options = args.extract_options!
+          skip_before_filter method
+          unless args.include? :off or options[method] == :off
+            before_filter method, options
+          end
         end
+      else
+        def _filter_setting(method, *args)
+          options = args.extract_options!
+          skip_before_action method
+          unless args.include? :off or options[method] == :off
+            before_action method, options
+          end
+        end        
       end
     end
     
