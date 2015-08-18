@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    trust (1.0.0)
+    trust (1.4.2)
       activemodel (>= 3.0.0)
       activesupport (>= 3.0.0)
 

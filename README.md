@@ -70,7 +70,7 @@ module Permissions
     end
   end
 
-  # Rails 4 - defininitions for  strong_params
+  # Rails 4 - definitions for  strong_params
   class Invoice < Default
     require :invoice          # requires :invoice hash. This is set by default, so in practice not necessary to define
     permit :date, :due_days   # permitted parameters
@@ -112,7 +112,7 @@ class AccountsController < ApplicationController
 end
 ```
 
-The trustee statement will set up 3 before_filters in your controller:
+The trustee statement will set up 3 before_filters (before_actions) in your controller:
   
 ``` Ruby
 before_filter :set_user
