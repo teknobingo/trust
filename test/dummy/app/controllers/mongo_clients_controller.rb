@@ -70,7 +70,7 @@ class MongoClientsController < ApplicationController
   # PUT /clients/1.json
   def update
     respond_to do |format|
-      if @mongo_client.update_attributes(params[:mongo_client])
+      if @mongo_client.update_attributes(resource.strong_params)
         format.html { redirect_to @mongo_client, notice: 'Client was successfully updated.' }
         format.json { head :no_content }
       else

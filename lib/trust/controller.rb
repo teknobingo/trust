@@ -98,7 +98,7 @@ module Trust
           set_user *args
           load_resource *args
           access_control *args
-          helper_method :can?, :resource
+          helper_method :can?, :resource, :resource?
         end
       end
       
@@ -136,12 +136,22 @@ module Trust
       end
       
     private
-      def _filter_setting(method, *args)
-        options = args.extract_options!
-        skip_before_filter method
-        unless args.include? :off or options[method] == :off
-          before_filter method, options
+      if Trust.rails_generation < 4
+        def _filter_setting(method, *args)
+          options = args.extract_options!
+          skip_before_filter method
+          unless args.include? :off or options[method] == :off
+            before_filter method, options
+          end
         end
+      else
+        def _filter_setting(method, *args)
+          options = args.extract_options!
+          skip_before_action method
+          unless args.include? :off or options[method] == :off
+            before_action method, options
+          end
+        end        
       end
     end
     
@@ -183,19 +193,33 @@ module Trust
         @resource ||= Trust::Controller::Resource.new(self, self.class.properties, action_name, params, request)
       end
       
+      # Returns true if resource has been loaded
+      def resource?
+        !@resource.nil?
+      end
       # Loads the resource which basically means loading the instance and eventual parent defined through +belongs_to+
       #
       # This method is triggered as a callback on +before_filter+
       # See {Trust::Controller::Resource} for more information
       def load_resource
-        resource.load
+        if resource.new_action?
+          authorization.preload
+          authorization.instance_loaded resource.load # need to set instance on authorizing object
+        else
+          resource.load
+        end
       end
       
       # Performs the actual access_control.
       #
       # This method is triggered as a callback on +before_filter+
       def access_control
-        Trust::Authorization.authorize!(action_name, resource.instance || resource.klass, resource.parent)
+        authorization.authorize!
+      end
+
+      # maintains access to the authorization object
+      def authorization
+        @authorization ||= Trust::Authorization.new(action_name, resource)
       end
 
       # Tests for current users permissions.

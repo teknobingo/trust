@@ -23,7 +23,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 class User < ActiveRecord::Base
-  attr_accessible :name
+  # attr_accessible :name
 
   def role_symbols
     [ name && name.to_sym]

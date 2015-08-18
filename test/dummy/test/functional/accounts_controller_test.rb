@@ -63,7 +63,7 @@ class AccountsControllerTest < ActionController::TestCase
 
     should "update account" do
       put :update, client_id: @client, id: @account, account: { name: @account.name }
-      assert_redirected_to client_account_path(assigns(:account))
+      assert_redirected_to client_account_path(@client, assigns(:account))
     end
 
     should "destroy account" do
@@ -106,7 +106,7 @@ class AccountsControllerTest < ActionController::TestCase
     context 'but having ownership' do
       should 'allow updates' do
         put :update, client_id: @client, id: @account, account: { name: @account.name }
-        assert_redirected_to client_account_path(assigns(:account))
+        assert_redirected_to client_account_path(@client, assigns(:account))
       end
     end
     context 'having no ownership' do

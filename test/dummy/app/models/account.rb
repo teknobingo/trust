@@ -23,7 +23,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 class Account < ActiveRecord::Base
-  attr_accessible :name, :client_id
+  # attr_accessible :name, :client_id
   belongs_to :client
   belongs_to :created_by, :class_name => 'User'
 

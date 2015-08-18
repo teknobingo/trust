@@ -23,7 +23,7 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 class Client < ActiveRecord::Base
-  attr_accessible :name
+  # attr_accessible :name
   has_many :accounts
   belongs_to :accountant, :class_name => 'User'
 

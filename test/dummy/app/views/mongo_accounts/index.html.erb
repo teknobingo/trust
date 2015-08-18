@@ -36,9 +36,9 @@
 <% @mongo_accounts.each do |account| %>
   <tr>
     <td><%= account.name %></td>
-    <td><%= link_to 'Show', mongo_client_mongo_account_path(account.mongo_client,account) %></td>
-    <td><%= link_to 'Edit', edit_mongo_client_mongo_account_path(account.mongo_client,account) %></td>
-    <td><%= link_to 'Destroy', mongo_client_mongo_account_path(account.mongo_client,account), confirm: 'Are you sure?', method: :delete %></td>
+    <td><%= link_to 'Show', mongo_account_path(account) %></td>
+    <td><%= link_to 'Edit', edit_mongo_account_path(account) %></td>
+    <td><%= link_to 'Destroy', mongo_account_path(account), confirm: 'Are you sure?', method: :delete %></td>
   </tr>
 <% end %>
 </table>

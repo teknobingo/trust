@@ -22,7 +22,7 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-Dummy::Application.routes.draw do
+Rails.application.routes.draw do
   resources :clients
   resources :mongo_clients
 
@@ -30,13 +30,13 @@ Dummy::Application.routes.draw do
     
   resources :client do
     resources :savings_accounts, :shallow => true
-    resources :accounts
+    resources :accounts, :shallow => false
     namespace :accounts do
       resources :credit, :shallow => true
     end
   end
 
-  resources :mongo_client do
+  resources :mongo_client, :shallow => true do
     resources :mongo_accounts
   end
 

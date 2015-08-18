@@ -28,4 +28,8 @@ class TrustTest < ActiveSupport::TestCase
   test "truth" do
     assert_kind_of Module, Trust
   end
+  
+  should 'return the appropriate rails generation' do
+    assert 6 > Trust.rails_generation
+  end
 end

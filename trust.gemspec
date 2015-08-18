@@ -36,14 +36,14 @@ Gem::Specification.new do |s|
   s.homepage    = "https://github.com/teknobingo/trust"
   s.summary     = "Trust is a framework for authorization control in RubyOnRails"
   s.description = <<THE_END
-Trust is a resource oriented framework for authorization control. It has a loose coupling from the models, and features a native
-Ruby implementation language. Support for inheritance and namespaced models as well as nested routes. Even permissions scheme supports inheritance.
+Trust is a resource oriented framework for authorization control. It is compatible with Rails 3 and 4.
+It has a loose coupling from the models, and features a native Ruby implementation language. 
+Support for inheritance and namespaced models as well as nested routes. Even permissions scheme supports inheritance.
 THE_END
 
   s.files = Dir["{app,config,db,lib}/**/*"] + ["MIT-LICENSE", "Rakefile", "README.md"]
   s.test_files = Dir["test/**/*"]
 
-  s.add_dependency "rails", ">= 3.0.1"
-
-  s.add_development_dependency "sqlite3"
+  s.add_dependency "activesupport", ">= 3.0.0"
+  s.add_dependency "activemodel", ">= 3.0.0"
 end
