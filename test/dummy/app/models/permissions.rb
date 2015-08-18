@@ -23,9 +23,12 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 module Permissions
+  Trust::Permissions.action_aliases = {
+    update: [:update, :edit],
+    }
   class Default < Trust::Permissions
     role :system_admin do
-      can :manage
+      can :index, :show, :create, :new, :update, :edit, :destroy
       can :audit
     end
     
@@ -39,20 +42,22 @@ module Permissions
   end
 
   class Client < Default
-    role :accountant, can(:manage)
-    role all, can(:read)
+    role :accountant, can(:index, :show, :create, :new, :update, :edit, :destroy)
+    role all, can(:index, :show)
   end
 
   class MongoClient < Client
   end
   
   class Account < Default
+    require :account
+    permit :name, :client_id
     role :accountant do
-      can :create, :if => :associated_with_client?
-      can :update, :if => :creator?
+      can :new, :create, if: :associated_with_client?
+      can :update, if: :creator?, permit: :name
     end
     role :department_manager, :accountant do
-      can :create, :if => lambda { parent && parent.accountant == :superspecial }
+      can :new, :create, :if => lambda { parent && parent.accountant == :superspecial }
     end
     
     def associated_with_client?
@@ -62,11 +67,11 @@ module Permissions
 
   class MongoAccount < Default
     role :accountant do
-      can :create, :if => :associated_with_client?
+      can :new, :create, :if => :associated_with_client?
       can :update, :if => :creator?
     end
     role :department_manager, :accountant do
-      can :create, :if => lambda { parent && parent.accountant == :superspecial }
+      can :new, :create, :if => lambda { parent && parent.accountant == :superspecial }
     end
     
     def associated_with_client?
@@ -76,10 +81,12 @@ module Permissions
 
   class Account::Credit < Account
     role :guest do
-      can :create, :if => lambda { user.name == 'wife'}
-    end
-    
+      can :new, :create, :if => lambda { user.name == 'wife'}
+    end 
   end
 
+  class User < Default
+    permit :name
+  end
 
 end

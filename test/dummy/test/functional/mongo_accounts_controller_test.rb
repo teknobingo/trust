@@ -48,30 +48,30 @@ class MongoAccountsControllerTest < ActionController::TestCase
         post :create, mongo_client_id: @client, mongo_account: { name: @account.name }
       end
 
-      assert_redirected_to mongo_client_mongo_account_path(@client,assigns(:mongo_account))
+      assert_redirected_to mongo_account_path(assigns(:mongo_account))
     end
 
     should "show account" do
-      get :show, mongo_client_id: @client.id, id: @account.id
+      get :show, id: @account.id
       assert_response :success
     end
 
     should "get edit" do
-      get :edit, mongo_client_id: @client, id: @account
+      get :edit, id: @account
       assert_response :success
     end
 
     should "update account" do
-      put :update, mongo_client_id: @client, id: @account, mongo_account: { name: @account.name }
-      assert_redirected_to mongo_client_mongo_account_path(assigns(:mongo_account))
+      put :update, id: @account, mongo_account: { name: @account.name }
+      assert_redirected_to mongo_account_path(assigns(:mongo_account))
     end
 
     should "destroy account" do
       assert_difference('MongoAccount.count', -1) do
-        delete :destroy, mongo_client_id: @client, id: @account
+        delete :destroy, id: @account
       end
 
-      assert_redirected_to mongo_client_mongo_accounts_path
+      assert_redirected_to mongo_client_mongo_accounts_path(@client.id)
     end
   end
   
@@ -106,7 +106,7 @@ class MongoAccountsControllerTest < ActionController::TestCase
     context 'but having ownership' do
       should 'allow updates' do
         put :update, mongo_client_id: @client, id: @account, mongo_account: { name: @account.name }
-        assert_redirected_to mongo_client_mongo_account_path(assigns(:mongo_account))
+        assert_redirected_to mongo_account_path(assigns(:mongo_account))
       end
     end
     context 'having no ownership' do

@@ -25,6 +25,10 @@
 module Trust
   # = Trust Authorization
   class Authorization
+    
+    # raised if attempting to do resource related operations and resource is not passed on to the Authorization object
+    class ResourceNotLoaded < StandardError; end
+    
     class << self
       
       # Returns true if user is authorized to perform +action+ on +object+ or +class+.
@@ -39,25 +43,13 @@ module Trust
       # 
       # This method is called by the +can?+ method in Trust::Controller, and is normally 
       # not necessary to call directly.
-      def authorized?(action, object_or_class, *args)
-        options = args.extract_options!
-        parent = options[:parent] || options[:for] || args.first
-        actor = options[:by] || user
-        if object_or_class.is_a? Class
-          klass = object_or_class
-          object = nil
-        else
-          klass = object_or_class.class
-          object = object_or_class
-        end
-        # Identify which class to instanciate and then check authorization
-        auth = authorizing_class(klass)
-        # Rails.logger.debug "Trust: Authorizing class for #{klass.name} is #{auth.name}"
-        auth.new(actor, action.to_sym, klass, object, parent).authorized?
+      def authorized?(action, object_or_class_or_resource, *args)
+        new(action, object_or_class_or_resource, *args).authorized?
       end
       
       # Tests if user is authorized to perform +action+ on +object+ or +class+, with the 
       # optional parent and raises Trust::AccessDenied exception if not permitted.
+      # If user is authorized, sets the params_handler for the resource.
       #
       # Options:
       #
@@ -70,15 +62,8 @@ module Trust
       # * +:message+ - The message to be passed onto the AccessDenied exception class      
       #
       # This method is used by the +access_control+ method in Trust::Controller
-      def authorize!(action, object_or_class, *args)
-        options = args.extract_options!
-        parent = options[:parent] || options[:for] || args.first
-        message = options[:message]
-        access_denied!(message, action, object_or_class, parent) unless authorized?(action, object_or_class, parent, options)
-      end
-      
-      def access_denied!(message = nil, action = nil, subject = nil, parent = nil) #:nodoc:
-        raise AccessDenied.new(message, action, subject)
+      def authorize!(action, object_or_class_or_resource, *args)
+        new(action, object_or_class_or_resource, *args).authorize!
       end
       
       # Returns the current +user+ being used in the authorization process
@@ -91,20 +76,82 @@ module Trust
       def user=(user)
         Thread.current["current_user"] = user
       end
-      
-    private
-      def authorizing_class(klass) #:nodoc:
-        auth = nil
-        klass.ancestors.each do |k|
-          break if k == ::ActiveRecord::Base
-          begin
-            auth = "::Permissions::#{k}".constantize
-            break
-          rescue
-          end
+    end
+    
+    attr_reader :authorization, :action, :resource, :klass, :object, :parent, :actor
+    
+    delegate :user, to: :class
+    
+    def initialize(action, resource_object_or_class, *args)
+      options = args.extract_options!
+      @action = action.to_sym
+      if resource_object_or_class.is_a? Trust::Controller::Resource
+        @resource = resource_object_or_class
+        @klass = resource.klass
+        @object = resource.instance
+        @actor = options[:by] || user
+        @parent = resource.parent
+      else
+        @parent = options[:parent] || options[:for] || args.first
+        @actor = options[:by] || user
+        if resource_object_or_class.is_a? Class
+          @klass = resource_object_or_class
+          @object = nil
+        else
+          @klass = resource_object_or_class.class
+          @object = resource_object_or_class
         end
-        auth || ::Permissions::Default
+      end
+      auth = authorizing_class
+      # Rails.logger.debug "Trust: Authorizing class for #{klass.name} is #{auth.name}"
+      @authorization = auth.new(@actor, @action, @klass, @object, @parent)
+    end
+
+    def access_denied!(message = nil, action = nil, subject = nil, parent = nil) #:nodoc:
+      raise AccessDenied.new(message, action, subject)
+    end
+
+    def authorize!
+      if perm = permissions
+        resource.params_handler = perm
+      else
+        access_denied!(nil, action, object || klass)
       end
     end
+
+    def authorized?
+      !!permissions
+    end
+    
+    def instance_loaded(instance)
+      @authorization.subject = instance
+    end
+    
+    # Preloads resource require and permit attributes, so that new objects can be initialized properly
+    # raises ResourceNotLoaded if Authorization object was not initialized with a resource object
+    def preload
+      raise ResourceNotLoaded unless resource
+      resource.params_handler = authorization.preload
+    end
+    
+    def permissions
+      authorization.authorized?
+    end
+    
+
+  private
+    def authorizing_class #:nodoc:
+      auth = nil
+      klass.ancestors.each do |k|
+        break if k == ::ActiveRecord::Base
+        begin
+          auth = "::Permissions::#{k}".constantize
+          break
+        rescue
+        end
+      end
+      auth || ::Permissions::Default
+    end
+  
   end
 end

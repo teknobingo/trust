@@ -5,6 +5,7 @@ source "http://rubygems.org"
 # development dependencies will be added by default to the :development group.
 gemspec
 
+gem "rails", ">= 4.2.0"
 # jquery-rails is used by the dummy application
 gem "jquery-rails"
 
@@ -14,9 +15,10 @@ gem "jquery-rails"
 # your gem to rubygems.org.
 
 gem 'shoulda'
+gem 'sqlite3'
 gem 'mocha'
-gem 'mongoid', "~> 2.3"
-gem "bson_ext", "~> 1.4"              # mongoid
+gem 'mongoid', "~> 4.0"
+#gem "bson_ext", "~> 1.12"              # mongoid
 gem 'bson'                            # mongoid
 
 # To use debugger
